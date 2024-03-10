@@ -2,7 +2,7 @@ import * as cdk from "aws-cdk-lib";
 import * as lambda from "aws-cdk-lib/aws-lambda";
 import { Construct } from "constructs";
 import * as python from "@aws-cdk/aws-lambda-python-alpha";
-
+import { execSync } from "child_process";
 import path = require("path");
 import { LambdaRestApi } from "aws-cdk-lib/aws-apigateway";
 import * as s3 from "aws-cdk-lib/aws-s3";

@@ -1,3 +1,22 @@
+# Set up fresh codespace
+
+```
+pipx install aws-sso-util
+pipx install aws-export-credentials
+curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+unzip awscliv2.zip
+sudo ./aws/install
+export AWS_REGION=eu-west-2
+export AWS_DEFAULT_SSO_REGION=eu-west-2
+export AWS_DEFAULT_SSO_START_URL=https://d-9c6771b41b.awsapps.com/start#/
+aws-sso-util configure profile default
+aws-export-credentials --env-export
+cd infra
+npm i
+npm i -g cdk
+cdk deploy
+```
+
 # To install x86 docker
 
 ```
