@@ -33,6 +33,12 @@ npm i -g cdk
 cdk deploy
 ```
 
+# To test locally with whitenoise instead of runserver static
+
+```
+pipenv run python manage.py runserver --nostatic
+```
+
 # To install x86 docker
 
 ```
