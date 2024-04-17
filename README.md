@@ -1,6 +1,22 @@
 # Set up fresh codespace
 
 ```
+curl https://pyenv.run | bash
+
+```
+
+Add the following to ~/.bashrc
+
+```
+export PYENV_ROOT="$HOME/.pyenv"
+[[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"
+eval "$(pyenv init -)"
+```
+
+Then continue with setup:
+
+```
+pipenv install
 pipx install aws-sso-util
 pipx install aws-export-credentials
 curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
