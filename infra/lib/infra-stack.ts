@@ -33,6 +33,7 @@ export class InfraStack extends cdk.Stack {
       proxy: true,
     });
 
+    bucket.grantReadWrite(fn);
     const dist = new cf.CloudFrontWebDistribution(this, "Distribution", {
       originConfigs: [
         {
