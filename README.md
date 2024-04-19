@@ -27,6 +27,8 @@ export AWS_DEFAULT_SSO_REGION=eu-west-2
 export AWS_DEFAULT_SSO_START_URL=https://d-9c6771b41b.awsapps.com/start#/
 aws-sso-util configure profile default
 aws-export-credentials --env-export
+#or
+eval "$(aws configure export-credentials --format env)"
 cd infra
 npm i
 npm i -g cdk

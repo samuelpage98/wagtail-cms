@@ -1,5 +1,6 @@
 import * as cdk from "aws-cdk-lib";
 import * as lambda from "aws-cdk-lib/aws-lambda";
+import * as cf from "aws-cdk-lib/aws-cloudfront";
 import { Construct } from "constructs";
 import * as python from "@aws-cdk/aws-lambda-python-alpha";
 import { execSync } from "child_process";
@@ -30,6 +31,27 @@ export class InfraStack extends cdk.Stack {
     const api = new LambdaRestApi(this, "cms", {
       handler: fn,
       proxy: true,
+    });
+
+    const dist = new cf.CloudFrontWebDistribution(this, "Distribution", {
+      originConfigs: [
+        {
+          customOriginSource: {
+            domainName: `${api.restApiId}.execute-api.${this.region}.${this.urlSuffix}`,
+            // the properties below are optional
+            allowedOriginSSLVersions: [cf.OriginSslPolicy.SSL_V3],
+            originHeaders: {
+              originHeadersKey: "originHeaders",
+            },
+            originKeepaliveTimeout: cdk.Duration.minutes(30),
+            originPath: `/${api.deploymentStage.stageName}`,
+            originProtocolPolicy: cf.OriginProtocolPolicy.HTTP_ONLY,
+            originReadTimeout: cdk.Duration.minutes(30),
+            originShieldRegion: "originShieldRegion",
+          },
+          behaviors: [{ isDefaultBehavior: true }],
+        },
+      ],
     });
   }
 }
