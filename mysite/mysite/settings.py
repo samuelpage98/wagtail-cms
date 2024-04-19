@@ -28,6 +28,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
+CSRF_TRUSTED_ORIGINS = ['https://d3ilum8xpeh8ct.cloudfront.net']
 
 # Application definition
 

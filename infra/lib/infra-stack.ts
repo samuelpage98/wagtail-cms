@@ -43,11 +43,16 @@ export class InfraStack extends cdk.Stack {
             originHeaders: {
               originHeadersKey: "originHeaders",
             },
-            originPath: `/${api.deploymentStage.stageName}`,
+            originPath: `/prod`,
             originProtocolPolicy: cf.OriginProtocolPolicy.HTTPS_ONLY,
             originShieldRegion: "eu-west-2",
           },
-          behaviors: [{ isDefaultBehavior: true }],
+          behaviors: [
+            {
+              isDefaultBehavior: true,
+              allowedMethods: cf.CloudFrontAllowedMethods.ALL,
+            },
+          ],
         },
       ],
     });
