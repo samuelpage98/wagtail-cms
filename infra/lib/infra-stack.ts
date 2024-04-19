@@ -22,6 +22,8 @@ export class InfraStack extends cdk.Stack {
       runtime: lambda.Runtime.PYTHON_3_8,
       handler: "mysite.wsgi.lambda_handler",
       code: lambda.Code.fromAsset("../mysite"),
+      memorySize: 512,
+      timeout: cdk.Duration.seconds(300),
       layers: [pythonDependencies],
       environment: {
         BUCKET_NAME: bucket.bucketName,
@@ -35,6 +37,7 @@ export class InfraStack extends cdk.Stack {
 
     bucket.grantReadWrite(fn);
     const dist = new cf.CloudFrontWebDistribution(this, "Distribution", {
+      defaultRootObject: "",
       originConfigs: [
         {
           customOriginSource: {
@@ -48,9 +51,11 @@ export class InfraStack extends cdk.Stack {
             originProtocolPolicy: cf.OriginProtocolPolicy.HTTPS_ONLY,
             originShieldRegion: "eu-west-2",
           },
+
           behaviors: [
             {
               isDefaultBehavior: true,
+
               allowedMethods: cf.CloudFrontAllowedMethods.ALL,
               forwardedValues: {
                 queryString: true,
