@@ -43,11 +43,9 @@ export class InfraStack extends cdk.Stack {
             originHeaders: {
               originHeadersKey: "originHeaders",
             },
-            originKeepaliveTimeout: cdk.Duration.minutes(30),
             originPath: `/${api.deploymentStage.stageName}`,
-            originProtocolPolicy: cf.OriginProtocolPolicy.HTTP_ONLY,
-            originReadTimeout: cdk.Duration.minutes(30),
-            originShieldRegion: "originShieldRegion",
+            originProtocolPolicy: cf.OriginProtocolPolicy.HTTPS_ONLY,
+            originShieldRegion: "eu-west-2",
           },
           behaviors: [{ isDefaultBehavior: true }],
         },
