@@ -57,6 +57,7 @@ export class InfraStack extends cdk.Stack {
               isDefaultBehavior: true,
 
               allowedMethods: cf.CloudFrontAllowedMethods.ALL,
+              defaultTtl: cdk.Duration.seconds(0),
               forwardedValues: {
                 queryString: true,
                 cookies: { forward: "all" },
