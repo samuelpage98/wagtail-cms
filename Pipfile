@@ -8,6 +8,8 @@ django = "*"
 apig-wsgi = "*"
 django-s3-sqlite = "*"
 whitenoise = "*"
+pandas = "*"
+django-nested-admin = "*"
 
 [dev-packages]
 boto3 = "*"

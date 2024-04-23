@@ -33,7 +33,9 @@ CSRF_TRUSTED_ORIGINS = ['https://d3ilum8xpeh8ct.cloudfront.net']
 # Application definition
 
 INSTALLED_APPS = [
+    'yapp',
     'cms',
+    'nested_admin',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -85,7 +87,11 @@ DATABASES = {
         "NAME":  'db.sqlite3',
         "BUCKET": os.environ['BUCKET_NAME']}
 }
-
+# DATABASES = {
+#     "default": {
+#         "ENGINE": "django.db.backends.sqlite3",
+#         "NAME":  'db.sqlite3',
+#     }}
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
