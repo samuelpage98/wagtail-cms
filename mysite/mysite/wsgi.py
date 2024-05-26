@@ -7,15 +7,17 @@ For more information on this file, see
 https://docs.djangoproject.com/en/4.2/howto/deployment/wsgi/
 """
 from __future__ import annotations
-import json
-
-from typing import Any
-from typing import cast
-from apig_wsgi.compat import WSGIApplication
-from apig_wsgi import make_lambda_handler
-import os
-
 from django.core.wsgi import get_wsgi_application
+from apig_wsgi import make_lambda_handler
+from apig_wsgi.compat import WSGIApplication
+from typing import cast
+from typing import Any
+import json
+import os
+import logging
+logger = logging.getLogger()
+logger.setLevel("INFO")
+
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'mysite.settings')
 
@@ -28,7 +30,7 @@ apig_wsgi_handler = make_lambda_handler(application, binary_support=True)
 
 
 def lambda_handler(event: dict[str, Any], context: dict[str, Any]) -> dict[str, Any]:
-    print(json.dumps(event, indent=2, sort_keys=True))
+    logger.info(json.dumps(event, indent=2, sort_keys=True))
     response = apig_wsgi_handler(event, context)
-    print(json.dumps(response, indent=2, sort_keys=True))
+    logger.info(json.dumps(response, indent=2, sort_keys=True))
     return response
