@@ -16,7 +16,7 @@ import json
 import os
 import logging
 logger = logging.getLogger()
-logger.setLevel("INFO")
+logger.setLevel("DEBUG")
 
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'mysite.settings')
@@ -26,11 +26,15 @@ application = cast(  # incomplete hints in django-stubs
     WSGIApplication, get_wsgi_application()
 )
 
-apig_wsgi_handler = make_lambda_handler(application, binary_support=True)
+apig_wsgi_handler = make_lambda_handler(
+    application, binary_support=None)
+
+# non_binary_content_type_prefixes=['image/svg+xml', 'text', 'application/json']
 
 
 def lambda_handler(event: dict[str, Any], context: dict[str, Any]) -> dict[str, Any]:
+    # logger.info(event['requestContext']['path'])
     logger.info(json.dumps(event, indent=2, sort_keys=True))
     response = apig_wsgi_handler(event, context)
-    logger.info(json.dumps(response, indent=2, sort_keys=True))
+    # logger.info(json.dumps(response, indent=2, sort_keys=True))
     return response

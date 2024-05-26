@@ -27,6 +27,7 @@ export class InfraStack extends cdk.Stack {
       layers: [pythonDependencies],
       environment: {
         BUCKET_NAME: bucket.bucketName,
+        DJANGO_LOG_LEVEL: "DEBUG",
       },
     });
 
