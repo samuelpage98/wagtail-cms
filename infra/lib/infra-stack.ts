@@ -44,7 +44,7 @@ export class InfraStack extends cdk.Stack {
           customOriginSource: {
             domainName: `${api.restApiId}.execute-api.${this.region}.${this.urlSuffix}`,
             // the properties below are optional
-            allowedOriginSSLVersions: [cf.OriginSslPolicy.SSL_V3],
+            allowedOriginSSLVersions: [cf.OriginSslPolicy.TLS_V1_2],
             originHeaders: {
               originHeadersKey: "originHeaders",
             },
@@ -56,13 +56,25 @@ export class InfraStack extends cdk.Stack {
           behaviors: [
             {
               isDefaultBehavior: true,
-
+              allowedMethods: cf.CloudFrontAllowedMethods.GET_HEAD_OPTIONS,
+              forwardedValues: {
+                queryString: true,
+                cookies: { forward: "none" },
+              },
+              minTtl: cdk.Duration.seconds(0),
+              defaultTtl: cdk.Duration.seconds(300),
+              maxTtl: cdk.Duration.seconds(1200),
+            },
+            {
+              pathPattern: "/admin*",
               allowedMethods: cf.CloudFrontAllowedMethods.ALL,
-              defaultTtl: cdk.Duration.seconds(0),
               forwardedValues: {
                 queryString: true,
                 cookies: { forward: "all" },
               },
+              minTtl: cdk.Duration.seconds(0),
+              defaultTtl: cdk.Duration.seconds(0),
+              maxTtl: cdk.Duration.seconds(0),
             },
           ],
         },
