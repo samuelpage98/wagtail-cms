@@ -35,7 +35,8 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
-CSRF_TRUSTED_ORIGINS = ['https://d3ilum8xpeh8ct.cloudfront.net']
+CSRF_TRUSTED_ORIGINS = ['https://' +
+                        os.environ['CLOUDFRONT_DISTRIBUTION_DOMAINNAME']]
 
 # Application definition
 

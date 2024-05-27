@@ -1,6 +1,9 @@
 import * as cdk from "aws-cdk-lib";
 import * as lambda from "aws-cdk-lib/aws-lambda";
 import * as cf from "aws-cdk-lib/aws-cloudfront";
+import * as cloudfront from "aws-cdk-lib/aws-cloudfront";
+import * as origins from "aws-cdk-lib/aws-cloudfront-origins";
+
 import { Construct } from "constructs";
 import * as python from "@aws-cdk/aws-lambda-python-alpha";
 import { execSync } from "child_process";
@@ -37,48 +40,31 @@ export class InfraStack extends cdk.Stack {
     });
 
     bucket.grantReadWrite(fn);
-    const dist = new cf.CloudFrontWebDistribution(this, "Distribution", {
-      defaultRootObject: "",
-      originConfigs: [
-        {
-          customOriginSource: {
-            domainName: `${api.restApiId}.execute-api.${this.region}.${this.urlSuffix}`,
-            // the properties below are optional
-            allowedOriginSSLVersions: [cf.OriginSslPolicy.TLS_V1_2],
-            originHeaders: {
-              originHeadersKey: "originHeaders",
-            },
-            originPath: `/prod`,
-            originProtocolPolicy: cf.OriginProtocolPolicy.HTTPS_ONLY,
-            originShieldRegion: "eu-west-2",
-          },
 
-          behaviors: [
-            {
-              isDefaultBehavior: true,
-              allowedMethods: cf.CloudFrontAllowedMethods.GET_HEAD_OPTIONS,
-              forwardedValues: {
-                queryString: true,
-                cookies: { forward: "none" },
-              },
-              minTtl: cdk.Duration.seconds(0),
-              defaultTtl: cdk.Duration.seconds(300),
-              maxTtl: cdk.Duration.seconds(1200),
-            },
-            {
-              pathPattern: "/admin*",
-              allowedMethods: cf.CloudFrontAllowedMethods.ALL,
-              forwardedValues: {
-                queryString: true,
-                cookies: { forward: "all" },
-              },
-              minTtl: cdk.Duration.seconds(0),
-              defaultTtl: cdk.Duration.seconds(0),
-              maxTtl: cdk.Duration.seconds(0),
-            },
-          ],
-        },
-      ],
+    const distribution = new cloudfront.Distribution(this, "MyDist", {
+      defaultBehavior: {
+        origin: new origins.HttpOrigin(
+          `${api.restApiId}.execute-api.${this.region}.${this.urlSuffix}`,
+          {
+            originPath: "/prod",
+          }
+        ),
+        allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
+        viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.HTTPS_ONLY,
+        cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
+        originRequestPolicy:
+          cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
+      },
+      enableLogging: true,
+    });
+
+    fn.addEnvironment(
+      "CLOUDFRONT_DISTRIBUTION_DOMAINNAME",
+      distribution.distributionDomainName
+    );
+
+    new cdk.CfnOutput(this, "CloudFrontWWW", {
+      value: `https://` + distribution.distributionDomainName,
     });
   }
 }
