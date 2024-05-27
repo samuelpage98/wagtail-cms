@@ -40,6 +40,9 @@ CSRF_TRUSTED_ORIGINS = ['https://' +
 
 # Application definition
 
+# STATIC_HOST = 'https://' + os.environ['CLOUDFRONT_DISTRIBUTION_DOMAINNAME']
+# STATIC_URL = STATIC_HOST + "/static/"
+STATIC_URL = "/static/"
 INSTALLED_APPS = [
     'yapp',
     'cms',
@@ -53,6 +56,7 @@ INSTALLED_APPS = [
     "django_s3_sqlite"
 ]
 
+WHITENOISE_MAX_AGE = 45
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -135,7 +139,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
-STATIC_URL = 'static/'
+# STATIC_URL = 'static/'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
