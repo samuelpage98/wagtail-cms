@@ -36,5 +36,5 @@ def lambda_handler(event: dict[str, Any], context: dict[str, Any]) -> dict[str, 
     # logger.info(event['requestContext']['path'])
     logger.info(json.dumps(event, indent=2, sort_keys=True))
     response = apig_wsgi_handler(event, context)
-    # logger.info(json.dumps(response, indent=2, sort_keys=True))
+    logger.info(json.dumps(response, indent=2, sort_keys=True))
     return response

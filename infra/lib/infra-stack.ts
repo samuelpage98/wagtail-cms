@@ -51,9 +51,24 @@ export class InfraStack extends cdk.Stack {
         ),
         allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
         viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.HTTPS_ONLY,
-        cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
+        cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
         originRequestPolicy:
           cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
+      },
+      additionalBehaviors: {
+        "/admin/*": {
+          origin: new origins.HttpOrigin(
+            `${api.restApiId}.execute-api.${this.region}.${this.urlSuffix}`,
+            {
+              originPath: "/prod",
+            }
+          ),
+          allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
+          viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.HTTPS_ONLY,
+          cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
+          originRequestPolicy:
+            cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
+        },
       },
       enableLogging: true,
     });
