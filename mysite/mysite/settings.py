@@ -39,7 +39,7 @@ CSRF_TRUSTED_ORIGINS = ['https://' +
                         os.environ['CLOUDFRONT_DISTRIBUTION_DOMAINNAME']]
 
 # Application definition
-
+WHITENOISE_MAX_AGE = 60*60*24
 # STATIC_HOST = 'https://' + os.environ['CLOUDFRONT_DISTRIBUTION_DOMAINNAME']
 # STATIC_URL = STATIC_HOST + "/static/"
 STATIC_URL = "/static/"
@@ -56,7 +56,6 @@ INSTALLED_APPS = [
     "django_s3_sqlite"
 ]
 
-WHITENOISE_MAX_AGE = 45
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

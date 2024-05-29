@@ -3,6 +3,8 @@ import * as lambda from "aws-cdk-lib/aws-lambda";
 import * as cf from "aws-cdk-lib/aws-cloudfront";
 import * as cloudfront from "aws-cdk-lib/aws-cloudfront";
 import * as origins from "aws-cdk-lib/aws-cloudfront-origins";
+import * as logs from "aws-cdk-lib/aws-logs";
+import * as apigateway from "aws-cdk-lib/aws-apigateway";
 
 import { Construct } from "constructs";
 import * as python from "@aws-cdk/aws-lambda-python-alpha";
@@ -10,6 +12,7 @@ import { execSync } from "child_process";
 import path = require("path");
 import { LambdaRestApi } from "aws-cdk-lib/aws-apigateway";
 import * as s3 from "aws-cdk-lib/aws-s3";
+import { error } from "console";
 
 export class InfraStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -21,7 +24,9 @@ export class InfraStack extends cdk.Stack {
       entry: "../layer/", // point this to your library's directory
       compatibleRuntimes: [lambda.Runtime.PYTHON_3_8],
     });
+
     const fn = new lambda.Function(this, "DjangoServerless", {
+      tracing: lambda.Tracing.ACTIVE,
       runtime: lambda.Runtime.PYTHON_3_8,
       handler: "mysite.wsgi.lambda_handler",
       code: lambda.Code.fromAsset("../mysite"),
@@ -34,9 +39,49 @@ export class InfraStack extends cdk.Stack {
       },
     });
 
+    const accessLogGroup = new logs.LogGroup(this, "AccessLogGroup", {
+      logGroupName: "/aws/api-gateway/cms-prod",
+      retention: logs.RetentionDays.ONE_WEEK,
+    });
+
     const api = new LambdaRestApi(this, "cms", {
       handler: fn,
       proxy: true,
+      deployOptions: {
+        stageName: "prod",
+        accessLogFormat: apigateway.AccessLogFormat.custom(
+          JSON.stringify({
+            requestId: apigateway.AccessLogField.contextRequestId(),
+            status: apigateway.AccessLogField.contextStatus(),
+            time: apigateway.AccessLogField.contextRequestTime(),
+            path: apigateway.AccessLogField.contextResourcePath(),
+            protocol: apigateway.AccessLogField.contextProtocol(),
+            responseLength: apigateway.AccessLogField.contextResponseLength(),
+            sourceIp: apigateway.AccessLogField.contextIdentitySourceIp(),
+            error: apigateway.AccessLogField.contextErrorMessageString(),
+            method: apigateway.AccessLogField.contextHttpMethod(),
+            contextPath: apigateway.AccessLogField.contextPath(),
+            errorType:
+              apigateway.AccessLogField.contextRequestOverrideHeader.toString(),
+            "error.message": "$context.error.message", // The error message returned by API Gateway.
+            httpMethod: "$context.httpMethod", // The HTTP method used. Valid values include: DELETE, GET, HEAD, OPTIONS, PATCH, POST, and PUT.
+            "identity.sourceIp": "$context.identity.sourceIp", // The IP address of the client that sent the request.
+            "integration.error": "$context.integration.error", // The error message returned by the integration.
+            "integration.integrationStatus":
+              "$context.integration.integrationStatus", // The status code returned by the integration.
+            "integration.latency": "$context.integration.latency", // The time between when API Gateway receives a request from a client and when it returns a response to the client. The latency includes the integration latency and other API Gateway overhead.
+            "integration.requestId": "$context.integration.requestId", // The ID of the request sent to the integration.
+            "integration.status": "$context.integration.status", // The HTTP status code that is returned by the integration back to API Gateway.
+            responseLatency: "$context.responseLatency", // The time between when API Gateway receives a request from a client and when it returns a response to the client. The latency does not include the integration latency.
+            stage: "$context.stage", // The name of the API Gateway stage that processes the request.
+          })
+        ),
+        accessLogDestination: new apigateway.LogGroupLogDestination(
+          accessLogGroup
+        ),
+      },
+
+      cloudWatchRole: true,
     });
 
     bucket.grantReadWrite(fn);
@@ -53,28 +98,13 @@ export class InfraStack extends cdk.Stack {
         origin: origin,
         allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
         viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.HTTPS_ONLY,
-        cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
+        cachePolicy: cloudfront.CachePolicy.AMPL
+
         originRequestPolicy:
           cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
-        responseHeadersPolicy:
-          cloudfront.ResponseHeadersPolicy.CORS_ALLOW_ALL_ORIGINS,
-      },
-      additionalBehaviors: {
-        "static*": {
-          origin: origin,
-          allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
-          viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.HTTPS_ONLY,
-          cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
-          // cachePolicy: cloudfront.CachePolicy.fromCachePolicyId(
-          //   this,
-          //   "Cache Policy",
-          //   "4cc15a8a-d715-48a4-82b8-cc0b614638fe"
-          // ),
-          originRequestPolicy:
-            cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
-          responseHeadersPolicy:
-            cloudfront.ResponseHeadersPolicy.CORS_ALLOW_ALL_ORIGINS,
-        },
+        // recommended for api agewatey - tryied all, and  api gateway chokes
+        // responseHeadersPolicy:
+        //   cloudfront.ResponseHeadersPolicy.CORS_ALLOW_ALL_ORIGINS,
       },
       enableLogging: true,
     });

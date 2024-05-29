@@ -16,7 +16,7 @@ import json
 import os
 import logging
 logger = logging.getLogger()
-logger.setLevel("DEBUG")
+logger.setLevel("INFO")
 
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'mysite.settings')
@@ -32,9 +32,20 @@ apig_wsgi_handler = make_lambda_handler(
 # non_binary_content_type_prefixes=['image/svg+xml', 'text', 'application/json']
 
 
+def createSingleLogEvent(event: dict[str, Any], response: dict[str, Any]):
+    returnedEvent = {}
+    for key in event:
+        returnedEvent['event.'+key] = event[key]
+    for key in response:
+        returnedEvent['response.'+key] = response[key]
+
+    return returnedEvent
+
+
 def lambda_handler(event: dict[str, Any], context: dict[str, Any]) -> dict[str, Any]:
     # logger.info(event['requestContext']['path'])
-    logger.info(json.dumps(event, indent=2, sort_keys=True))
+    # logger.info(json.dumps(event, indent=2, sort_keys=True))
     response = apig_wsgi_handler(event, context)
-    logger.info(json.dumps(response, indent=2, sort_keys=True))
+    logger.info(json.dumps(createSingleLogEvent(
+        event, response), indent=2, sort_keys=True))
     return response
