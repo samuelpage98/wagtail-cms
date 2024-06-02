@@ -16,7 +16,7 @@ import json
 import os
 import logging
 logger = logging.getLogger()
-logger.setLevel("INFO")
+logger.setLevel("DEBUG")
 
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'mysite.settings')

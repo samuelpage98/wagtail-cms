@@ -44,6 +44,7 @@ WHITENOISE_MAX_AGE = 60*60*24
 # STATIC_URL = STATIC_HOST + "/static/"
 STATIC_URL = "/static/"
 INSTALLED_APPS = [
+    'jazzmin',
     'yapp',
     'cms',
     'nested_admin',
@@ -53,10 +54,30 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    "django_s3_sqlite"
+    "django_s3_sqlite",
+    'wagtail.contrib.forms',
+    'wagtail.contrib.redirects',
+    'wagtail.embeds',
+    'wagtail.sites',
+    'wagtail.users',
+    'wagtail.snippets',
+    'wagtail.documents',
+    'wagtail.images',
+    'wagtail.search',
+    'wagtail.admin',
+    'wagtail',
+
+    'modelcluster',
+    'taggit',
 ]
 
-
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_URL = '/media/'
+WAGTAIL_SITE_NAME = 'John Tech'
+WAGTAILDOCS_EXTENSIONS = ['csv', 'docx', 'key',
+                          'odt', 'pdf', 'pptx', 'rtf', 'txt', 'xlsx', 'zip']
+WAGTAILADMIN_BASE_URL = 'https://' + \
+    os.environ['CLOUDFRONT_DISTRIBUTION_DOMAINNAME']
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -66,6 +87,8 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     "whitenoise.middleware.WhiteNoiseMiddleware",
+    'wagtail.contrib.redirects.middleware.RedirectMiddleware',
+
 ]
 
 ROOT_URLCONF = 'mysite.urls'

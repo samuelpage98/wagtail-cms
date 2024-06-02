@@ -22,15 +22,15 @@ export class InfraStack extends cdk.Stack {
 
     const pythonDependencies = new python.PythonLayerVersion(this, "MyLayer", {
       entry: "../layer/", // point this to your library's directory
-      compatibleRuntimes: [lambda.Runtime.PYTHON_3_8],
+      compatibleRuntimes: [lambda.Runtime.PYTHON_3_9],
     });
 
     const fn = new lambda.Function(this, "DjangoServerless", {
       tracing: lambda.Tracing.ACTIVE,
-      runtime: lambda.Runtime.PYTHON_3_8,
+      runtime: lambda.Runtime.PYTHON_3_9,
       handler: "mysite.wsgi.lambda_handler",
       code: lambda.Code.fromAsset("../mysite"),
-      memorySize: 512,
+      memorySize: 1024,
       timeout: cdk.Duration.seconds(300),
       layers: [pythonDependencies],
       environment: {
@@ -98,7 +98,7 @@ export class InfraStack extends cdk.Stack {
         origin: origin,
         allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
         viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.HTTPS_ONLY,
-        cachePolicy: cloudfront.CachePolicy.AMPL
+        cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
 
         originRequestPolicy:
           cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,

@@ -38,6 +38,8 @@ cdk deploy
 # To test locally with whitenoise instead of runserver static
 
 ```
+export CLOUDFRONT_DISTRIBUTION_DOMAINNAME=d1t0ym9xad15zz.cloudfront.net
+export BUCKET_NAME=infrastack-djangobucketbcbbce8f-mpcaypcryfck
 pipenv run python manage.py runserver --nostatic
 ```
 
