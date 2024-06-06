@@ -69,10 +69,15 @@ INSTALLED_APPS = [
     'wagtail.contrib.frontend_cache',
     'modelcluster',
     'taggit',
+    'storages',
 ]
 
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-MEDIA_URL = '/media/'
+
+AWS_S3_CUSTOM_DOMAIN = '%s.s3.amazonaws.com' % os.environ['BUCKET_NAME']
+MEDIA_URL = "https://%s/" % AWS_S3_CUSTOM_DOMAIN
+DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+
+
 WAGTAIL_SITE_NAME = 'John Tech'
 WAGTAILDOCS_EXTENSIONS = ['csv', 'docx', 'key',
                           'odt', 'pdf', 'pptx', 'rtf', 'txt', 'xlsx', 'zip']
@@ -123,11 +128,18 @@ WSGI_APPLICATION = 'mysite.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
+# DATABASES = {
+#     "default": {
+#         "ENGINE": "django_s3_sqlite",
+#         "NAME":  'db.sqlite3',
+#         "BUCKET": os.environ['BUCKET_NAME']}
+# }
+
 DATABASES = {
-    "default": {
-        "ENGINE": "django_s3_sqlite",
-        "NAME":  'db.sqlite3',
-        "BUCKET": os.environ['BUCKET_NAME']}
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': os.environ.get('SQLITE_DB_PATH', os.path.join(BASE_DIR, 'db.sqlite3')),
+    }
 }
 # DATABASES = {
 #     "default": {

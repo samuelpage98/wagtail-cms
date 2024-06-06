@@ -11,6 +11,7 @@ whitenoise = "*"
 django-nested-admin = "*"
 django-jazzmin = "*"
 wagtail = "*"
+django-storages = "*"
 
 [dev-packages]
 boto3 = "*"
