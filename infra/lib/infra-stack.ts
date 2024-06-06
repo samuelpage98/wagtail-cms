@@ -5,7 +5,7 @@ import * as cloudfront from "aws-cdk-lib/aws-cloudfront";
 import * as origins from "aws-cdk-lib/aws-cloudfront-origins";
 import * as logs from "aws-cdk-lib/aws-logs";
 import * as apigateway from "aws-cdk-lib/aws-apigateway";
-
+import * as iam from "aws-cdk-lib/aws-iam";
 import { Construct } from "constructs";
 import * as python from "@aws-cdk/aws-lambda-python-alpha";
 import { execSync } from "child_process";
@@ -113,6 +113,19 @@ export class InfraStack extends cdk.Stack {
       "CLOUDFRONT_DISTRIBUTION_DOMAINNAME",
       distribution.distributionDomainName
     );
+
+    fn.addEnvironment(
+      "CLOUDFRONT_DISTRIBUTION_ID",
+      distribution.distributionId
+    );
+
+    // Attach permissions to Lambda to invalidate CloudFront cache
+    const invalidationPolicy = new iam.PolicyStatement({
+      actions: ["cloudfront:CreateInvalidation"],
+      resources: [`arn:aws:cloudfront::${this.account}:distribution/${distribution.distributionId}`],
+    });
+
+    fn.addToRolePolicy(invalidationPolicy);
 
     new cdk.CfnOutput(this, "CloudFrontWWW", {
       value: `https://` + distribution.distributionDomainName,
