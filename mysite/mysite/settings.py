@@ -66,7 +66,7 @@ INSTALLED_APPS = [
     'wagtail.search',
     'wagtail.admin',
     'wagtail',
-
+    'wagtail.contrib.frontend_cache',
     'modelcluster',
     'taggit',
 ]
@@ -78,6 +78,14 @@ WAGTAILDOCS_EXTENSIONS = ['csv', 'docx', 'key',
                           'odt', 'pdf', 'pptx', 'rtf', 'txt', 'xlsx', 'zip']
 WAGTAILADMIN_BASE_URL = 'https://' + \
     os.environ['CLOUDFRONT_DISTRIBUTION_DOMAINNAME']
+
+WAGTAILFRONTENDCACHE = {
+    'cloudfront': {
+        'BACKEND': 'wagtail.contrib.frontend_cache.backends.CloudfrontBackend',
+        'DISTRIBUTION_ID': os.environ['CLOUDFRONT_DISTRIBUTION_ID'],
+    },
+}
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
