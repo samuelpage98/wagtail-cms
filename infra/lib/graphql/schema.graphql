@@ -1,5 +1,5 @@
 type DatabaseVersion @model {
-  domainName: String!
+  domainName: String! @primaryKey
   s3Path: String!
   version: Int!
 }

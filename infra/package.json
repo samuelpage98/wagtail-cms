@@ -20,6 +20,7 @@
     "typescript": "~5.3.3"
   },
   "dependencies": {
+    "@aws-amplify/data-construct": "^1.8.5",
     "@aws-cdk/aws-lambda-python-alpha": "^2.128.0-alpha.0",
     "aws-cdk-lib": "2.128.0",
     "constructs": "^10.0.0",

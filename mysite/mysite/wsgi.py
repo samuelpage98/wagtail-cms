@@ -29,7 +29,7 @@ application = cast(  # incomplete hints in django-stubs
 )
 
 apig_wsgi_handler = make_lambda_handler(
-    application, binary_support=None)
+    application, binary_support=True)
 
 def download_db_from_s3(object_key):
     s3_client = boto3.client('s3')
@@ -56,11 +56,14 @@ def get_latest_version(domain_name: str) -> dict:
     }
     '''
     response = requests.post(
-        url=os.environ['APPSYNC_API_ENDPOINT'],
+        url=os.environ['DATASTORE_API_URL'],
         json={'query': query, 'variables': {'domainName': domain_name}},
-        headers={'x-api-key': os.environ['APPSYNC_API_KEY']}
+        headers={'x-api-key': os.environ['DATASTORE_API_KEY']}
     )
     data = response.json().get('data', {})
+    if 'errors' in data:
+        logger.error(f"Error fetching latest version: {data['errors']}")
+        raise Exception(f"Error fetching latest version: {data['errors']}")
     return data.get('getLatestVersion', None)
 
 def update_version(domain_name: str, s3_path: str) -> dict:
@@ -74,11 +77,15 @@ def update_version(domain_name: str, s3_path: str) -> dict:
     }
     '''
     response = requests.post(
-        url=os.environ['APPSYNC_API_ENDPOINT'],
+        url=os.environ['DATASTORE_API_URL'],
         json={'query': mutation, 'variables': {'domainName': domain_name, 's3Path': s3_path}},
-        headers={'x-api-key': os.environ['APPSYNC_API_KEY']}
+        headers={'x-api-key': os.environ['DATASTORE_API_KEY']}
     )
-    return response.json()['data']['updateVersion']
+    data = response.json()
+    if 'errors' in data:
+        logger.error(f"Error updating version: {data['errors']}")
+        raise Exception(f"Error updating version: {data['errors']}")
+    return data['data']['updateVersion']
 
 def createSingleLogEvent(event: dict[str, Any], response: dict[str, Any]):
     returnedEvent = {}

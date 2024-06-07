@@ -13,8 +13,7 @@ import path = require("path");
 import { LambdaRestApi } from "aws-cdk-lib/aws-apigateway";
 import * as s3 from "aws-cdk-lib/aws-s3";
 import { error } from "console";
-import * as appsync from "aws-cdk-lib/aws-appsync";
-import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
+import { AmplifyData, AmplifyDataDefinition } from '@aws-amplify/data-construct';
 
 export class InfraStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -22,47 +21,20 @@ export class InfraStack extends cdk.Stack {
 
     const bucket = new s3.Bucket(this, "django_bucket", {});
 
-    const pythonDependencies = new python.PythonLayerVersion(this, "MyLayer", {
-      entry: "../layer/", // point this to your library's directory
+    const pythonDependencies = new python.PythonLayerVersion(this, 'MyLayer', {
+      entry: '../layer/', // point this to your library's directory
       compatibleRuntimes: [lambda.Runtime.PYTHON_3_9],
     });
 
-    const versionTable = new dynamodb.Table(this, "VersionTable", {
-      partitionKey: { name: "domainName", type: dynamodb.AttributeType.STRING },
-      sortKey: { name: "version", type: dynamodb.AttributeType.NUMBER },
-    });
-
-    const api = new appsync.GraphqlApi(this, "DatabaseVersioningAPI", {
-      name: "DatabaseVersioningAPI",
-      definition: appsync.Definition.fromFile(path.join(__dirname, 'graphql/schema.graphql')),
-      authorizationConfig: {
-        defaultAuthorization: {
-          authorizationType: appsync.AuthorizationType.API_KEY,
+    const amplifyData = new AmplifyData(this, 'DatabaseVersioning', {
+      definition: AmplifyDataDefinition.fromFiles(path.join(__dirname, 'graphql/schema.graphql')),
+      authorizationModes: {
+        defaultAuthorizationMode: 'API_KEY',
+        apiKeyConfig: {
+          description: 'Api Key for public access',
+          expires: cdk.Duration.days(7),
         },
       },
-    });
-
-    const graphqlLambda = new lambda.Function(this, "AppSyncLambda", {
-      runtime: lambda.Runtime.PYTHON_3_9,
-      handler: "lambda_function.lambda_handler",
-      code: lambda.Code.fromAsset('lib/lambda'),
-      environment: {
-        TABLE_NAME: versionTable.tableName,
-      },
-    });
-
-    versionTable.grantReadWriteData(graphqlLambda);
-
-    const lambdaDataSource = api.addLambdaDataSource("lambdaDatasource", graphqlLambda);
-
-    lambdaDataSource.createResolver("QueryGetLatestVersionResolver", {
-      typeName: "Query",
-      fieldName: "getLatestVersion",
-    });
-
-    lambdaDataSource.createResolver("MutationUpdateVersionResolver", {
-      typeName: "Mutation",
-      fieldName: "updateVersion",
     });
 
     const fn = new lambda.Function(this, "DjangoServerless", {
@@ -76,8 +48,8 @@ export class InfraStack extends cdk.Stack {
       environment: {
         BUCKET_NAME: bucket.bucketName,
         DJANGO_LOG_LEVEL: "DEBUG",
-        APPSYNC_API_ENDPOINT: api.graphqlUrl,
-        APPSYNC_API_KEY: api.apiKey || '',
+        DATASTORE_API_URL: amplifyData.graphqlUrl,
+        DATASTORE_API_KEY: amplifyData.apiKey || '',
       },
     });
 
@@ -174,11 +146,11 @@ export class InfraStack extends cdk.Stack {
     });
 
     new cdk.CfnOutput(this, "GraphQLAPIURL", {
-      value: api.graphqlUrl,
+      value: amplifyData.graphqlUrl,
     });
 
     new cdk.CfnOutput(this, "GraphQLAPIKey", {
-      value: api.apiKey || '',
+      value: amplifyData.apiKey || '',
     });
   }
 }
