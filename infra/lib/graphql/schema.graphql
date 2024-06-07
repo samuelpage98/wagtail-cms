@@ -1,0 +1,13 @@
+type DatabaseVersion @model {
+  domainName: String!
+  s3Path: String!
+  version: Int!
+}
+
+type Query {
+  getLatestVersion(domainName: String!): DatabaseVersion
+}
+
+type Mutation {
+  updateVersion(domainName: String!, s3Path: String!): DatabaseVersion
+}
