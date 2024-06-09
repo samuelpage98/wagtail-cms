@@ -40,6 +40,7 @@ cdk deploy
 ```
 export CLOUDFRONT_DISTRIBUTION_DOMAINNAME=d1t0ym9xad15zz.cloudfront.net
 export BUCKET_NAME=infrastack-djangobucketbcbbce8f-mpcaypcryfck
+export CLOUDFRONT_DISTRIBUTION_ID=E1SSVT4MU1CCD2
 pipenv run python manage.py runserver --nostatic
 ```
 
