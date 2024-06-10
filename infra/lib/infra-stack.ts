@@ -13,28 +13,25 @@ import path = require("path");
 import { LambdaRestApi } from "aws-cdk-lib/aws-apigateway";
 import * as s3 from "aws-cdk-lib/aws-s3";
 import { error } from "console";
-import { AmplifyData, AmplifyDataDefinition } from '@aws-amplify/data-construct';
+import * as appsync from "aws-cdk-lib/aws-appsync";
+import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
 
 export class InfraStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
-    const bucket = new s3.Bucket(this, "django_bucket", {});
+    const bucket = new s3.Bucket(this, "django_bucket", {
+      versioned: true,
+    });
 
-    const pythonDependencies = new python.PythonLayerVersion(this, 'MyLayer', {
-      entry: '../layer/', // point this to your library's directory
+    const pythonDependencies = new python.PythonLayerVersion(this, "MyLayer", {
+      entry: "../layer/",
       compatibleRuntimes: [lambda.Runtime.PYTHON_3_9],
     });
 
-    const amplifyData = new AmplifyData(this, 'DatabaseVersioning', {
-      definition: AmplifyDataDefinition.fromFiles(path.join(__dirname, 'graphql/schema.graphql')),
-      authorizationModes: {
-        defaultAuthorizationMode: 'API_KEY',
-        apiKeyConfig: {
-          description: 'Api Key for public access',
-          expires: cdk.Duration.days(7),
-        },
-      },
+    const versionTable = new dynamodb.Table(this, "VersionTable", {
+      partitionKey: { name: "domainName", type: dynamodb.AttributeType.STRING },
+      sortKey: { name: "version", type: dynamodb.AttributeType.NUMBER },
     });
 
     const fn = new lambda.Function(this, "DjangoServerless", {
@@ -47,9 +44,8 @@ export class InfraStack extends cdk.Stack {
       layers: [pythonDependencies],
       environment: {
         BUCKET_NAME: bucket.bucketName,
+        TABLE_NAME: versionTable.tableName,
         DJANGO_LOG_LEVEL: "DEBUG",
-        DATASTORE_API_URL: amplifyData.graphqlUrl,
-        DATASTORE_API_KEY: amplifyData.apiKey || '',
       },
     });
 
@@ -98,6 +94,7 @@ export class InfraStack extends cdk.Stack {
       cloudWatchRole: true,
     });
 
+    versionTable.grantReadWriteData(fn);
     bucket.grantReadWrite(fn);
 
     const origin = new origins.HttpOrigin(
@@ -143,14 +140,6 @@ export class InfraStack extends cdk.Stack {
 
     new cdk.CfnOutput(this, "CloudFrontWWW", {
       value: `https://` + distribution.distributionDomainName,
-    });
-
-    new cdk.CfnOutput(this, "GraphQLAPIURL", {
-      value: amplifyData.graphqlUrl,
-    });
-
-    new cdk.CfnOutput(this, "GraphQLAPIKey", {
-      value: amplifyData.apiKey || '',
     });
   }
 }
