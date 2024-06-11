@@ -12,6 +12,7 @@ django-nested-admin = "*"
 django-jazzmin = "*"
 wagtail = "*"
 django-storages = "*"
+django-dynamodb-sessions = "*"
 
 [dev-packages]
 boto3 = "*"

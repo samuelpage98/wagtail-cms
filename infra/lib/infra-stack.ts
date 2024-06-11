@@ -34,6 +34,13 @@ export class InfraStack extends cdk.Stack {
       sortKey: { name: "version", type: dynamodb.AttributeType.NUMBER },
     });
 
+    const sessionsTable = new dynamodb.Table(this, "Sessions", {
+      partitionKey: {
+        name: "session_key",
+        type: dynamodb.AttributeType.STRING,
+      },
+    });
+
     const fn = new lambda.Function(this, "DjangoServerless", {
       tracing: lambda.Tracing.ACTIVE,
       runtime: lambda.Runtime.PYTHON_3_9,
@@ -46,6 +53,7 @@ export class InfraStack extends cdk.Stack {
         BUCKET_NAME: bucket.bucketName,
         TABLE_NAME: versionTable.tableName,
         DJANGO_LOG_LEVEL: "DEBUG",
+        DYNAMODB_SESSIONS_TABLE_NAME: sessionsTable.tableName,
       },
     });
 
@@ -95,6 +103,8 @@ export class InfraStack extends cdk.Stack {
     });
 
     versionTable.grantReadWriteData(fn);
+    sessionsTable.grantReadWriteData(fn); // todo restrict
+
     bucket.grantReadWrite(fn);
 
     const origin = new origins.HttpOrigin(
@@ -133,7 +143,9 @@ export class InfraStack extends cdk.Stack {
     // Attach permissions to Lambda to invalidate CloudFront cache
     const invalidationPolicy = new iam.PolicyStatement({
       actions: ["cloudfront:CreateInvalidation"],
-      resources: [`arn:aws:cloudfront::${this.account}:distribution/${distribution.distributionId}`],
+      resources: [
+        `arn:aws:cloudfront::${this.account}:distribution/${distribution.distributionId}`,
+      ],
     });
 
     fn.addToRolePolicy(invalidationPolicy);

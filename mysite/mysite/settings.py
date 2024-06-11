@@ -10,11 +10,27 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
+import mimetypes
 from pathlib import Path
 import os
+import boto3
 
 
-import mimetypes
+print('************ebv*******')
+for key in os.environ:
+    print(key + ': ' + os.environ[key])
+
+# SESSION_ENGINE = 'dynamodb_sessions.backends.dynamodb'
+# DYNAMODB_SESSIONS_AWS_ACCESS_KEY_ID = os.environ['AWS_ACCESS_KEY_ID']
+# DYNAMODB_SESSIONS_AWS_SECRET_ACCESS_KEY = os.environ['AWS_SECRET_ACCESS_KEY']
+DYNAMODB_SESSIONS_BOTO_SESSION = boto3.session.Session(
+    aws_access_key_id=os.environ['AWS_ACCESS_KEY_ID'],
+    aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY'],
+    aws_session_token=os.environ['AWS_SESSION_TOKEN']
+)
+DYNAMODB_SESSIONS_AWS_REGION_NAME = 'eu-west-2'
+DYNAMODB_SESSIONS_TABLE_NAME = os.environ['DYNAMODB_SESSIONS_TABLE_NAME']
+
 
 mimetypes.add_type("image/svg+xml", ".svg", True)
 mimetypes.add_type("image/svg+xml", ".svgz", True)
@@ -44,6 +60,7 @@ WHITENOISE_MAX_AGE = 60*60*24
 # STATIC_URL = STATIC_HOST + "/static/"
 STATIC_URL = "/static/"
 INSTALLED_APPS = [
+
     'jazzmin',
     'yapp',
     'cms',
@@ -90,7 +107,16 @@ WAGTAILFRONTENDCACHE = {
         'DISTRIBUTION_ID': os.environ['CLOUDFRONT_DISTRIBUTION_ID'],
     },
 }
+# SESSION_ENGINE = "dysession.backends.db"
+# DYSESSION = {
+#     "DYNAMODB_TABLENAME": os.environ['DYNAMODB_SESSIONS_TABLE_NAME'],
 
+#     "CACHE_PERIOD": 3600,
+#     "DYNAMODB_REGION": "eu-west-2",
+#     "LOGGING": {
+#         "TYPE": "CONSOLE",
+#     },
+# }
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
