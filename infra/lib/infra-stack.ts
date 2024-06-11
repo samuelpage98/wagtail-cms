@@ -65,8 +65,10 @@ export class InfraStack extends cdk.Stack {
     const apiGateway = new LambdaRestApi(this, "cms", {
       handler: fn,
       proxy: true,
+
       deployOptions: {
         stageName: "prod",
+
         accessLogFormat: apigateway.AccessLogFormat.custom(
           JSON.stringify({
             requestId: apigateway.AccessLogField.contextRequestId(),
@@ -100,6 +102,7 @@ export class InfraStack extends cdk.Stack {
       },
 
       cloudWatchRole: true,
+      binaryMediaTypes: ["image/*"],
     });
 
     versionTable.grantReadWriteData(fn);
