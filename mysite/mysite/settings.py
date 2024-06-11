@@ -35,7 +35,22 @@ DYNAMODB_SESSIONS_TABLE_NAME = os.environ['DYNAMODB_SESSIONS_TABLE_NAME']
 mimetypes.add_type("image/svg+xml", ".svg", True)
 mimetypes.add_type("image/svg+xml", ".svgz", True)
 
-
+STORAGES = {
+    "default": {
+        "BACKEND": "storages.backends.s3.S3Storage",
+        "OPTIONS": {
+            'bucket_name': os.environ['BUCKET_NAME'],
+            'location': 'media/',
+            'access_key': os.environ['AWS_ACCESS_KEY_ID'],
+            'secret_key': os.environ['AWS_SECRET_ACCESS_KEY'],
+            'security_token': os.environ['AWS_SESSION_TOKEN'],
+            'region_name': os.environ.get('AWS_REGION_NAME', None),
+        },
+    },
+    "staticfiles": {
+        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+    },
+}
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -92,7 +107,6 @@ INSTALLED_APPS = [
 
 AWS_S3_CUSTOM_DOMAIN = '%s.s3.amazonaws.com' % os.environ['BUCKET_NAME']
 MEDIA_URL = "https://%s/" % AWS_S3_CUSTOM_DOMAIN
-DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
 
 
 WAGTAIL_SITE_NAME = 'John Tech'

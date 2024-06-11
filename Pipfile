@@ -11,8 +11,8 @@ whitenoise = "*"
 django-nested-admin = "*"
 django-jazzmin = "*"
 wagtail = "*"
-django-storages = "*"
 django-dynamodb-sessions = "*"
+django-storages = {extras = ["s3"], version = "*"}
 
 [dev-packages]
 boto3 = "*"
