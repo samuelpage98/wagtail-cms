@@ -18,6 +18,7 @@ import os
 import logging
 import boto3
 import time
+import random
 
 logger = logging.getLogger()
 logger.setLevel("DEBUG")
@@ -34,7 +35,7 @@ table_name = os.environ['TABLE_NAME']
 bucket_name = os.environ['BUCKET_NAME']
 
 # S3 upload retry constraints
-RETRY_DELAY = 0.2  # seconds
+RETRY_DELAY = 0.2 * (1 + random.random()) # seconds
 MAX_RETRIES = 5
 
 def download_db_from_s3(version_id=None):
@@ -164,6 +165,7 @@ def lambda_handler(event: dict[str, Any], context: dict[str, Any]) -> dict[str, 
                 else:
                     s3_version_id = None
                     current_version = 0
-                db_path = download_db_from_s3(s3_version_id) 
+                db_path = download_db_from_s3(s3_version_id)
+                response = apig_wsgi_handler(event, context)
 
     return response
