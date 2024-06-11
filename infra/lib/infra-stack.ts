@@ -124,6 +124,21 @@ export class InfraStack extends cdk.Stack {
       }
     );
 
+    const originAccessIdentity = new cloudfront.OriginAccessIdentity(
+      this,
+      "OAI",
+      {
+        comment: `OAI for ${bucket.bucketName}`,
+      }
+    );
+
+    const media = new origins.S3Origin(bucket, {
+      originPath: "/media",
+      originAccessIdentity: originAccessIdentity,
+    });
+
+    bucket.grantRead(originAccessIdentity);
+
     const distribution = new cloudfront.Distribution(this, "MyDist", {
       defaultBehavior: {
         origin: origin,
@@ -136,6 +151,17 @@ export class InfraStack extends cdk.Stack {
         // recommended for api agewatey - tryied all, and  api gateway chokes
         // responseHeadersPolicy:
         //   cloudfront.ResponseHeadersPolicy.CORS_ALLOW_ALL_ORIGINS,
+      },
+      additionalBehaviors: {
+        "/media/*": {
+          // Use your own path pattern
+          origin: media,
+          allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
+          viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.HTTPS_ONLY,
+          cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
+          originRequestPolicy:
+            cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
+        },
       },
       enableLogging: true,
     });

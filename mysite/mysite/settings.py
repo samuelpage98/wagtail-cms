@@ -101,10 +101,6 @@ INSTALLED_APPS = [
 ]
 
 
-AWS_S3_CUSTOM_DOMAIN = '%s.s3.amazonaws.com' % os.environ['BUCKET_NAME']
-MEDIA_URL = "https://%s/" % AWS_S3_CUSTOM_DOMAIN
-
-
 WAGTAIL_SITE_NAME = 'John Tech'
 WAGTAILDOCS_EXTENSIONS = ['csv', 'docx', 'key',
                           'odt', 'pdf', 'pptx', 'rtf', 'txt', 'xlsx', 'zip']
@@ -218,7 +214,8 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
 # STATIC_URL = 'static/'
-
+MEDIA_URL = 'https://' + \
+    os.environ['CLOUDFRONT_DISTRIBUTION_DOMAINNAME']+'/media/'
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
