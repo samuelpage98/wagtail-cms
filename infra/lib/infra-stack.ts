@@ -102,7 +102,13 @@ export class InfraStack extends cdk.Stack {
       },
 
       cloudWatchRole: true,
-      binaryMediaTypes: ["image/*"],
+      binaryMediaTypes: [
+        "image/*",
+        "*font*",
+        "application/font-woff",
+        "font/woff2",
+        "font/*",
+      ],
     });
 
     versionTable.grantReadWriteData(fn);
