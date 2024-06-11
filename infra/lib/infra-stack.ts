@@ -108,6 +108,7 @@ export class InfraStack extends cdk.Stack {
         "application/font-woff",
         "font/woff2",
         "font/*",
+        "*/*",
       ],
     });
 

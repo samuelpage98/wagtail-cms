@@ -21,7 +21,7 @@ import time
 import random
 
 logger = logging.getLogger()
-logger.setLevel("DEBUG")
+logger.setLevel("INFO")
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'mysite.settings')
 
@@ -35,21 +35,25 @@ table_name = os.environ['TABLE_NAME']
 bucket_name = os.environ['BUCKET_NAME']
 
 # S3 upload retry constraints
-RETRY_DELAY = 0.2 * (1 + random.random()) # seconds
+RETRY_DELAY = 0.2 * (1 + random.random())  # seconds
 MAX_RETRIES = 5
+
 
 def download_db_from_s3(version_id=None):
     object_key = 'db.sqlite3'
     download_path = '/tmp/db.sqlite3'
     extra_args = {"VersionId": version_id} if version_id else {}
-    s3_client.download_file(bucket_name, object_key, download_path, ExtraArgs=extra_args)
+    s3_client.download_file(bucket_name, object_key,
+                            download_path, ExtraArgs=extra_args)
     return download_path
+
 
 def upload_db_to_s3(db_path):
     object_key = 'db.sqlite3'
     s3_client.upload_file(db_path, bucket_name, object_key)
     head_response = s3_client.head_object(Bucket=bucket_name, Key=object_key)
     return head_response['VersionId']
+
 
 def get_latest_version(domain_name: str) -> dict:
     try:
@@ -79,6 +83,7 @@ def get_latest_version(domain_name: str) -> dict:
         logger.error(f"Error querying DynamoDB: {str(e)}")
         raise
 
+
 def update_version(domain_name, new_version, s3_version_id, expected_version=None):
     try:
         response = dynamodb_client.put_item(
@@ -86,7 +91,7 @@ def update_version(domain_name, new_version, s3_version_id, expected_version=Non
             Item={
                 'domainName': {'S': domain_name},
                 's3Path': {'S': 'db.sqlite3'},
-                'version': {'N': str(new_version)}, 
+                'version': {'N': str(new_version)},
                 's3VersionId': {'S': s3_version_id}
             },
             ConditionExpression='attribute_not_exists(domainName) OR version < :expected_version',
@@ -94,7 +99,8 @@ def update_version(domain_name, new_version, s3_version_id, expected_version=Non
                 ':expected_version': {'N': str(expected_version)}
             }
         )
-        logger.debug(f"Updated version: {new_version} for domain: {domain_name}")
+        logger.debug(
+            f"Updated version: {new_version} for domain: {domain_name}")
         return {
             'domainName': domain_name,
             'version': new_version,
@@ -107,6 +113,7 @@ def update_version(domain_name, new_version, s3_version_id, expected_version=Non
         logger.error(f"Error updating DynamoDB: {str(e)}")
         raise
 
+
 def createSingleLogEvent(event: dict[str, Any], response: dict[str, Any]):
     returnedEvent = {}
     for key in event:
@@ -116,9 +123,10 @@ def createSingleLogEvent(event: dict[str, Any], response: dict[str, Any]):
 
     return returnedEvent
 
+
 def lambda_handler(event: dict[str, Any], context: dict[str, Any]) -> dict[str, Any]:
     domain_name = 'example.com'
-    
+
     # Get the latest version info
     latest_version_info = get_latest_version(domain_name)
     if latest_version_info:
@@ -140,7 +148,8 @@ def lambda_handler(event: dict[str, Any], context: dict[str, Any]) -> dict[str, 
 
     # Log event and response
     response = apig_wsgi_handler(event, context)
-    logger.info(json.dumps(createSingleLogEvent(event, response), indent=2, sort_keys=True))
+    logger.info(json.dumps(createSingleLogEvent(
+        event, response), indent=2, sort_keys=True))
 
     if event['httpMethod'] in ['POST', 'PUT', 'DELETE']:
         new_version = current_version + 1
@@ -149,7 +158,8 @@ def lambda_handler(event: dict[str, Any], context: dict[str, Any]) -> dict[str, 
         while retries < MAX_RETRIES:
             try:
                 new_s3_version_id = upload_db_to_s3(db_path)
-                update_version(domain_name, new_version, new_s3_version_id, current_version)
+                update_version(domain_name, new_version,
+                               new_s3_version_id, current_version)
                 break  # Exit loop if successful
             except Exception as e:
                 logger.error(f'Version update conflict: {str(e)}')

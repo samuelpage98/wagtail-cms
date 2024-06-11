@@ -16,10 +16,6 @@ import os
 import boto3
 
 
-print('************ebv*******')
-for key in os.environ:
-    print(key + ': ' + os.environ[key])
-
 # SESSION_ENGINE = 'dynamodb_sessions.backends.dynamodb'
 # DYNAMODB_SESSIONS_AWS_ACCESS_KEY_ID = os.environ['AWS_ACCESS_KEY_ID']
 # DYNAMODB_SESSIONS_AWS_SECRET_ACCESS_KEY = os.environ['AWS_SECRET_ACCESS_KEY']
