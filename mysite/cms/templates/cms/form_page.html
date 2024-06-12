@@ -1,0 +1,23 @@
+{% extends "cms/base.html" %} 
+{% load wagtailcore_tags crispy_forms_tags crispy_forms_gds %}
+{% load static %}
+
+{% block content %}
+
+  {% error_summary form %}
+
+    <span class="govuk-caption-xl">
+        Much excitement
+    </span>
+    <h1 class="govuk-heading-xl">
+        {{ page.title }}
+    </h1>
+        <form action="{% pageurl page %}" method="POST">{% csrf_token %}
+            {{ form |crispy }}
+            <button type="submit" class="govuk-button" data-module="govuk-button">
+                Save and continue
+            </button>
+        </form>
+
+{% endblock %}
+

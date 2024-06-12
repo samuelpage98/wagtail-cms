@@ -1,6 +1,29 @@
 from django.db import models
+from django.views.generic.base import TemplateResponseMixin, ContextMixin
 
-# Create your models here.
+from modelcluster.fields import ParentalKey
+from wagtail.models import Page, Orderable
+from wagtail.fields import RichTextField
+from wagtail.admin.panels import FieldPanel, InlinePanel
+from wagtail.search import index
+from wagtail.contrib.forms.models import AbstractForm, AbstractFormField
+from wagtail.contrib.forms.panels import FormSubmissionsPanel
+from django.forms import ModelForm
+from crispy_forms.helper import FormHelper
+from crispy_forms.layout import Layout, Fieldset, ButtonHolder, Submit
+from crispy_forms_gds.layout import Field
+
+
+class FormField(AbstractFormField):
+    page = ParentalKey('FormPage', on_delete=models.CASCADE, related_name='form_fields')
+
+
+class FormPage(AbstractForm):
+    content_panels = AbstractForm.content_panels + [
+        InlinePanel('form_fields', label="Form fields"),
+        FormSubmissionsPanel(),
+    ]
+
 
 
 class Topic(models.Model):

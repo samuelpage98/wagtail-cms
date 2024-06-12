@@ -13,6 +13,8 @@ django-jazzmin = "*"
 wagtail = "*"
 django-dynamodb-sessions = "*"
 django-storages = {extras = ["s3"], version = "*"}
+django-crispy-forms = "*"
+crispy-forms-gds = "*"
 
 [dev-packages]
 boto3 = "*"

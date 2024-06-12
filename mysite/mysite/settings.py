@@ -98,7 +98,13 @@ INSTALLED_APPS = [
     'modelcluster',
     'taggit',
     'storages',
+    'crispy_forms',
+    'crispy_forms_gds',
+    'wagtail.contrib.settings',
 ]
+
+CRISPY_ALLOWED_TEMPLATE_PACKS = "gds"
+CRISPY_TEMPLATE_PACK = "gds"
 
 
 WAGTAIL_SITE_NAME = 'John Tech'
