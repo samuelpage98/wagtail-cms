@@ -21,28 +21,28 @@ export class InfraStack extends cdk.Stack {
 
     const prefix = props.environmentName;
 
-    const bucket = new s3.Bucket(this, `${prefix}DjangoBucket`, {
+    const bucket = new s3.Bucket(this, `DjangoBucket`, {
       versioned: true,
     });
 
-    const pythonDependencies = new python.PythonLayerVersion(this, `${prefix}MyLayer`, {
+    const pythonDependencies = new python.PythonLayerVersion(this, `MyLayer`, {
       entry: "../layer/",
       compatibleRuntimes: [lambda.Runtime.PYTHON_3_9],
     });
 
-    const versionTable = new dynamodb.Table(this, `${prefix}VersionTable`, {
+    const versionTable = new dynamodb.Table(this, `VersionTable`, {
       partitionKey: { name: "domainName", type: dynamodb.AttributeType.STRING },
       sortKey: { name: "version", type: dynamodb.AttributeType.NUMBER },
     });
 
-    const sessionsTable = new dynamodb.Table(this, `${prefix}Sessions`, {
+    const sessionsTable = new dynamodb.Table(this, `Sessions`, {
       partitionKey: {
         name: "session_key",
         type: dynamodb.AttributeType.STRING,
       },
     });
 
-    const fn = new lambda.Function(this, `${prefix}DjangoServerless`, {
+    const fn = new lambda.Function(this, `DjangoServerless`, {
       tracing: lambda.Tracing.ACTIVE,
       runtime: lambda.Runtime.PYTHON_3_9,
       handler: "mysite.wsgi.lambda_handler",
@@ -58,7 +58,7 @@ export class InfraStack extends cdk.Stack {
       },
     });
 
-    const accessLogGroup = new logs.LogGroup(this, `${prefix}AccessLogGroup`, {
+    const accessLogGroup = new logs.LogGroup(this, `AccessLogGroup`, {
       logGroupName: `/aws/api-gateway/cms-${prefix}`,
       retention: logs.RetentionDays.ONE_WEEK,
     });
@@ -137,7 +137,7 @@ export class InfraStack extends cdk.Stack {
 
     bucket.grantRead(originAccessIdentity);
 
-    const distribution = new cloudfront.Distribution(this, `${prefix}MyDist`, {
+    const distribution = new cloudfront.Distribution(this, `MyDist`, {
       defaultBehavior: {
         origin: origin,
         allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
@@ -183,7 +183,7 @@ export class InfraStack extends cdk.Stack {
 
     fn.addToRolePolicy(invalidationPolicy);
 
-    new cdk.CfnOutput(this, `${prefix}CloudFrontWWW`, {
+    new cdk.CfnOutput(this, `CloudFrontWWW`, {
       value: `https://` + distribution.distributionDomainName,
     });
   }
