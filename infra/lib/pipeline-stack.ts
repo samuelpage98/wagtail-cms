@@ -18,7 +18,7 @@ export class PipelineStack extends cdk.Stack {
         input: CodePipelineSource.gitHub('johnemcbride/johntechhome', 'main', {
           authentication: cdk.SecretValue.secretsManager('github-token'),
         }),
-        commands: ['ls', 'cd infra', 'ls', 'npm install', 'npm run build', 'npx cdk synth']
+        commands: []
       }),
     });
 
