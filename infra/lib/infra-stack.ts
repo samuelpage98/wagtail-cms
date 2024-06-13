@@ -59,7 +59,7 @@ export class InfraStack extends cdk.Stack {
     });
 
     const accessLogGroup = new logs.LogGroup(this, `${prefix}AccessLogGroup`, {
-      logGroupName: "/aws/api-gateway/cms-prod",
+      logGroupName: `/aws/api-gateway/cms-${prefix}`,
       retention: logs.RetentionDays.ONE_WEEK,
     });
 
@@ -67,7 +67,7 @@ export class InfraStack extends cdk.Stack {
       handler: fn,
       proxy: true,
       deployOptions: {
-        stageName: "prod",
+        stageName: `${prefix}`,
         accessLogFormat: apigateway.AccessLogFormat.custom(
           JSON.stringify({
             requestId: apigateway.AccessLogField.contextRequestId(),
@@ -118,7 +118,7 @@ export class InfraStack extends cdk.Stack {
     const origin = new origins.HttpOrigin(
       `${apiGateway.restApiId}.execute-api.${this.region}.${this.urlSuffix}`,
       {
-        originPath: "/prod",
+        originPath: `/${prefix}`,
       }
     );
 
