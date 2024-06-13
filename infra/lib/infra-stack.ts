@@ -1,6 +1,5 @@
 import * as cdk from "aws-cdk-lib";
 import * as lambda from "aws-cdk-lib/aws-lambda";
-import * as cf from "aws-cdk-lib/aws-cloudfront";
 import * as cloudfront from "aws-cdk-lib/aws-cloudfront";
 import * as origins from "aws-cdk-lib/aws-cloudfront-origins";
 import * as logs from "aws-cdk-lib/aws-logs";
@@ -8,40 +7,42 @@ import * as apigateway from "aws-cdk-lib/aws-apigateway";
 import * as iam from "aws-cdk-lib/aws-iam";
 import { Construct } from "constructs";
 import * as python from "@aws-cdk/aws-lambda-python-alpha";
-import { execSync } from "child_process";
-import path = require("path");
 import { LambdaRestApi } from "aws-cdk-lib/aws-apigateway";
 import * as s3 from "aws-cdk-lib/aws-s3";
-import { error } from "console";
-import * as appsync from "aws-cdk-lib/aws-appsync";
 import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
 
+interface InfraStackProps extends cdk.StackProps {
+  environmentName: string;
+}
+
 export class InfraStack extends cdk.Stack {
-  constructor(scope: Construct, id: string, props?: cdk.StackProps) {
+  constructor(scope: Construct, id: string, props: InfraStackProps) {
     super(scope, id, props);
 
-    const bucket = new s3.Bucket(this, "django_bucket", {
+    const prefix = props.environmentName;
+
+    const bucket = new s3.Bucket(this, `${prefix}DjangoBucket`, {
       versioned: true,
     });
 
-    const pythonDependencies = new python.PythonLayerVersion(this, "MyLayer", {
+    const pythonDependencies = new python.PythonLayerVersion(this, `${prefix}MyLayer`, {
       entry: "../layer/",
       compatibleRuntimes: [lambda.Runtime.PYTHON_3_9],
     });
 
-    const versionTable = new dynamodb.Table(this, "VersionTable", {
+    const versionTable = new dynamodb.Table(this, `${prefix}VersionTable`, {
       partitionKey: { name: "domainName", type: dynamodb.AttributeType.STRING },
       sortKey: { name: "version", type: dynamodb.AttributeType.NUMBER },
     });
 
-    const sessionsTable = new dynamodb.Table(this, "Sessions", {
+    const sessionsTable = new dynamodb.Table(this, `${prefix}Sessions`, {
       partitionKey: {
         name: "session_key",
         type: dynamodb.AttributeType.STRING,
       },
     });
 
-    const fn = new lambda.Function(this, "DjangoServerless", {
+    const fn = new lambda.Function(this, `${prefix}DjangoServerless`, {
       tracing: lambda.Tracing.ACTIVE,
       runtime: lambda.Runtime.PYTHON_3_9,
       handler: "mysite.wsgi.lambda_handler",
@@ -57,18 +58,16 @@ export class InfraStack extends cdk.Stack {
       },
     });
 
-    const accessLogGroup = new logs.LogGroup(this, "AccessLogGroup", {
+    const accessLogGroup = new logs.LogGroup(this, `${prefix}AccessLogGroup`, {
       logGroupName: "/aws/api-gateway/cms-prod",
       retention: logs.RetentionDays.ONE_WEEK,
     });
 
-    const apiGateway = new LambdaRestApi(this, "cms", {
+    const apiGateway = new LambdaRestApi(this, `${prefix}CmsApi`, {
       handler: fn,
       proxy: true,
-
       deployOptions: {
         stageName: "prod",
-
         accessLogFormat: apigateway.AccessLogFormat.custom(
           JSON.stringify({
             requestId: apigateway.AccessLogField.contextRequestId(),
@@ -100,7 +99,6 @@ export class InfraStack extends cdk.Stack {
           accessLogGroup
         ),
       },
-
       cloudWatchRole: true,
       binaryMediaTypes: [
         "image/*",
@@ -126,7 +124,7 @@ export class InfraStack extends cdk.Stack {
 
     const originAccessIdentity = new cloudfront.OriginAccessIdentity(
       this,
-      "OAI",
+      `${prefix}OAI`,
       {
         comment: `OAI for ${bucket.bucketName}`,
       }
@@ -139,13 +137,12 @@ export class InfraStack extends cdk.Stack {
 
     bucket.grantRead(originAccessIdentity);
 
-    const distribution = new cloudfront.Distribution(this, "MyDist", {
+    const distribution = new cloudfront.Distribution(this, `${prefix}MyDist`, {
       defaultBehavior: {
         origin: origin,
         allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
         viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.HTTPS_ONLY,
         cachePolicy: cloudfront.CachePolicy.CACHING_OPTIMIZED,
-
         originRequestPolicy:
           cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
         // recommended for api agewatey - tryied all, and  api gateway chokes
@@ -186,7 +183,7 @@ export class InfraStack extends cdk.Stack {
 
     fn.addToRolePolicy(invalidationPolicy);
 
-    new cdk.CfnOutput(this, "CloudFrontWWW", {
+    new cdk.CfnOutput(this, `${prefix}CloudFrontWWW`, {
       value: `https://` + distribution.distributionDomainName,
     });
   }
