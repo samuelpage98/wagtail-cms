@@ -187,26 +187,18 @@ export class InfraStack extends cdk.Stack {
 
     fn.addToRolePolicy(invalidationPolicy);
 
-    const migrationLambdaRole = new iam.Role(this, 'MigrationLambdaRole', {
-      assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
-      managedPolicies: [
-        iam.ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSLambdaBasicExecutionRole'),
-        iam.ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSCodePipelineCustomActionAccess')
-      ],
-    });
-
     // Define the migration Lambda function with the pre-created role
-    const migrationLambda = new lambda.Function(this, 'MigrationLambda', {
+    this.migrationLambda = new lambda.Function(this, 'MigrationLambda', {
+      tracing: lambda.Tracing.ACTIVE,
       runtime: lambda.Runtime.PYTHON_3_9,
       handler: 'migrate_function.handler',
+      memorySize: 1024,
+      timeout: cdk.Duration.seconds(300),
       code: lambda.Code.fromAsset(path.join(__dirname, 'lambda')),
       environment: {
         'API_ENDPOINT': `https://${apiGateway.restApiId}.execute-api.${this.region}.amazonaws.com/${prefix}`
       },
-      role: migrationLambdaRole,
     });
-
-    this.migrationLambda = migrationLambda;
 
     new cdk.CfnOutput(this, `CloudFrontWWW`, {
       value: `https://` + distribution.distributionDomainName,
