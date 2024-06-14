@@ -10,18 +10,22 @@ import * as python from "@aws-cdk/aws-lambda-python-alpha";
 import { LambdaRestApi } from "aws-cdk-lib/aws-apigateway";
 import * as s3 from "aws-cdk-lib/aws-s3";
 import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
+import path = require("path");
 
 interface InfraStackProps extends cdk.StackProps {
   environmentName: string;
 }
 
 export class InfraStack extends cdk.Stack {
+  public readonly migrationLambda: lambda.Function;
+  public readonly bucket: s3.Bucket;
+
   constructor(scope: Construct, id: string, props: InfraStackProps) {
     super(scope, id, props);
 
     const prefix = props.environmentName;
 
-    const bucket = new s3.Bucket(this, `DjangoBucket`, {
+    this.bucket = new s3.Bucket(this, `DjangoBucket`, {
       versioned: true,
     });
 
@@ -51,7 +55,7 @@ export class InfraStack extends cdk.Stack {
       timeout: cdk.Duration.seconds(300),
       layers: [pythonDependencies],
       environment: {
-        BUCKET_NAME: bucket.bucketName,
+        BUCKET_NAME: this.bucket.bucketName,
         TABLE_NAME: versionTable.tableName,
         DJANGO_LOG_LEVEL: "DEBUG",
         DYNAMODB_SESSIONS_TABLE_NAME: sessionsTable.tableName,
@@ -113,7 +117,7 @@ export class InfraStack extends cdk.Stack {
     versionTable.grantReadWriteData(fn);
     sessionsTable.grantReadWriteData(fn); // todo restrict
 
-    bucket.grantReadWrite(fn);
+    this.bucket.grantReadWrite(fn);
 
     const origin = new origins.HttpOrigin(
       `${apiGateway.restApiId}.execute-api.${this.region}.${this.urlSuffix}`,
@@ -126,16 +130,16 @@ export class InfraStack extends cdk.Stack {
       this,
       `${prefix}OAI`,
       {
-        comment: `OAI for ${bucket.bucketName}`,
+        comment: `OAI for ${this.bucket.bucketName}`,
       }
     );
 
-    const media = new origins.S3Origin(bucket, {
+    const media = new origins.S3Origin(this.bucket, {
       originPath: "/media",
       originAccessIdentity: originAccessIdentity,
     });
 
-    bucket.grantRead(originAccessIdentity);
+    this.bucket.grantRead(originAccessIdentity);
 
     const distribution = new cloudfront.Distribution(this, `MyDist`, {
       defaultBehavior: {
@@ -182,6 +186,24 @@ export class InfraStack extends cdk.Stack {
     });
 
     fn.addToRolePolicy(invalidationPolicy);
+
+    const migrationLambda = new lambda.Function(this, 'MigrationLambda', {
+      runtime: lambda.Runtime.PYTHON_3_9,
+      handler: 'migrate_function.handler',
+      code: lambda.Code.fromAsset(path.join(__dirname, 'lambda')),
+      environment: {
+        'API_ENDPOINT': `https://${apiGateway.restApiId}.execute-api.${this.region}.amazonaws.com/${prefix}`
+      }
+    });
+
+    // Grant permissions to CodePipeline to invoke the migration Lambda function
+    const pipelineInvokePolicy = new iam.PolicyStatement({
+      actions: ['lambda:InvokeFunction'],
+      resources: [migrationLambda.functionArn]
+    });
+    migrationLambda.addToRolePolicy(pipelineInvokePolicy);
+
+    this.migrationLambda = migrationLambda;
 
     new cdk.CfnOutput(this, `CloudFrontWWW`, {
       value: `https://` + distribution.distributionDomainName,

@@ -19,6 +19,8 @@ import logging
 import boto3
 import time
 import random
+from django.core.management import call_command
+from django.http import JsonResponse
 
 logger = logging.getLogger()
 logger.setLevel("INFO")
@@ -38,6 +40,62 @@ bucket_name = os.environ['BUCKET_NAME']
 RETRY_DELAY = 0.2 * (1 + random.random())  # seconds
 MAX_RETRIES = 5
 
+@csrf_exempt
+def migrate(request):
+    if request.method == 'POST':
+        domain_name = 'example.com' 
+
+        # Get the latest version info
+        latest_version_info = get_latest_version(domain_name)
+        if latest_version_info:
+            s3_version_id = latest_version_info['s3VersionId']
+            current_version = latest_version_info['version']
+        else:
+            # Initialize with a new object if no version exists
+            current_version = 0
+            s3_version_id = None
+
+        # Download the latest database from S3 using the latest version's version_id
+        db_path = download_db_from_s3(s3_version_id)
+
+        # Update the environment variable for SQLite DB path
+        os.environ['SQLITE_DB_PATH'] = db_path
+
+        # Ensure Django settings use the updated database path
+        settings.DATABASES['default']['NAME'] = db_path
+
+        try:
+            # Run Django migrations
+            call_command('makemigrations')
+            call_command('migrate')
+
+            # Upload the SQLite file back to S3
+            new_version = current_version + 1
+            retries = 0
+
+            # Could probably do with being its own function
+            while retries < MAX_RETRIES:
+                try:
+                    new_s3_version_id = upload_db_to_s3(db_path)
+                    update_version(domain_name, new_version, new_s3_version_id, current_version)
+                    return JsonResponse({'message': 'Migrations completed successfully.'}, status=200)
+                except Exception as e:
+                    logger.error(f'Version update conflict: {str(e)}')
+                    retries += 1
+                    if retries >= MAX_RETRIES:
+                        logger.error('Max retries reached, aborting')
+                        return JsonResponse({'message': 'Max retries reached, aborting'}, status=500)
+                    time.sleep(RETRY_DELAY)
+                    latest_version_info = get_latest_version(domain_name)
+                    if latest_version_info:
+                        s3_version_id = latest_version_info['s3VersionId']
+                        current_version = latest_version_info['version']
+                    else:
+                        s3_version_id = None
+                        current_version = 0
+                    db_path = download_db_from_s3(s3_version_id)
+        except Exception as e:
+            return JsonResponse({'message': str(e)}, status=500)
 
 def download_db_from_s3(version_id=None):
     object_key = 'db.sqlite3'
