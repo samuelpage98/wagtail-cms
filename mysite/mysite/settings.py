@@ -101,14 +101,8 @@ INSTALLED_APPS = [
     'crispy_forms',
     'crispy_forms_gds',
     'wagtail.contrib.settings',
-    'admin_commands'
 ]
 
-ADMIN_COMMANDS_CONFIG = {
-    'allowed_commands': [
-            'all'
-        ]
-}
 
 CRISPY_ALLOWED_TEMPLATE_PACKS = "gds"
 CRISPY_TEMPLATE_PACK = "gds"
