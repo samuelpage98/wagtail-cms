@@ -10,6 +10,7 @@ from __future__ import annotations
 from django.core.wsgi import get_wsgi_application
 from apig_wsgi import make_lambda_handler
 from apig_wsgi.compat import WSGIApplication
+from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
 from typing import cast
 from typing import Any
