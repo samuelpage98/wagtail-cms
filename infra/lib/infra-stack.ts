@@ -187,21 +187,24 @@ export class InfraStack extends cdk.Stack {
 
     fn.addToRolePolicy(invalidationPolicy);
 
+    const migrationLambdaRole = new iam.Role(this, 'MigrationLambdaRole', {
+      assumedBy: new iam.ServicePrincipal('lambda.amazonaws.com'),
+      managedPolicies: [
+        iam.ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSLambdaBasicExecutionRole'),
+        iam.ManagedPolicy.fromAwsManagedPolicyName('service-role/AWSCodePipelineCustomActionAccess')
+      ],
+    });
+
+    // Define the migration Lambda function with the pre-created role
     const migrationLambda = new lambda.Function(this, 'MigrationLambda', {
       runtime: lambda.Runtime.PYTHON_3_9,
       handler: 'migrate_function.handler',
       code: lambda.Code.fromAsset(path.join(__dirname, 'lambda')),
       environment: {
         'API_ENDPOINT': `https://${apiGateway.restApiId}.execute-api.${this.region}.amazonaws.com/${prefix}`
-      }
+      },
+      role: migrationLambdaRole,
     });
-
-    // Grant permissions to CodePipeline to invoke the migration Lambda function
-    const pipelineInvokePolicy = new iam.PolicyStatement({
-      actions: ['lambda:InvokeFunction'],
-      resources: [migrationLambda.functionArn]
-    });
-    migrationLambda.addToRolePolicy(pipelineInvokePolicy);
 
     this.migrationLambda = migrationLambda;
 
