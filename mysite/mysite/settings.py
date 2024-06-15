@@ -137,6 +137,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 if os.getenv('AWS_EXECUTION_ENV'):
     print('Configuring for cloud')
     try:
-        from mysite.mysite.cloud_settings import *
+        from cloud_settings import *
     except ImportError as e:
         pass
