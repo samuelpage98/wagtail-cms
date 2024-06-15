@@ -37,7 +37,7 @@ urlpatterns = [
 
 
 if os.getenv('AWS_EXECUTION_ENV'):
-    urlpatterns.push(path('migrate/', migrate))
+    urlpatterns.append(path('migrate/', migrate))
 
 if os.getenv('AWS_EXECUTION_ENV') == None:
     urlpatterns += static(settings.MEDIA_URL,
