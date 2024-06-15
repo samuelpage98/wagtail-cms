@@ -29,7 +29,7 @@ class FormPage(AbstractForm):
 class Topic(models.Model):
     """A topic the user is learning about."""
     text = models.CharField(max_length=200)
-    other_text = models.CharField(max_length=200)
+    other_text = models.CharField(max_length=200, null=True)
     date_added = models.DateTimeField(
         auto_now_add=True)
 

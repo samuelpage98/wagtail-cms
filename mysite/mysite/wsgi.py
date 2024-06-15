@@ -22,7 +22,7 @@ import time
 import random
 from django.core.management import call_command
 from django.http import JsonResponse
-
+import os
 logger = logging.getLogger()
 logger.setLevel("INFO")
 
@@ -30,21 +30,23 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'mysite.settings')
 
 application = cast(WSGIApplication, get_wsgi_application())
 
-apig_wsgi_handler = make_lambda_handler(application, binary_support=True)
 
-dynamodb_client = boto3.client('dynamodb')
-s3_client = boto3.client('s3')
-table_name = os.environ['TABLE_NAME']
-bucket_name = os.environ['BUCKET_NAME']
+if os.getenv('AWS_EXECUTION_ENV'):
+    apig_wsgi_handler = make_lambda_handler(application, binary_support=True)
+    dynamodb_client = boto3.client('dynamodb')
+    s3_client = boto3.client('s3')
+    table_name = os.environ['TABLE_NAME']
+    bucket_name = os.environ['BUCKET_NAME']
 
 # S3 upload retry constraints
 RETRY_DELAY = 0.2 * (1 + random.random())  # seconds
 MAX_RETRIES = 5
 
+
 @csrf_exempt
 def migrate(request):
     if request.method == 'POST':
-        domain_name = 'example.com' 
+        domain_name = 'example.com'
 
         # Get the latest version info
         latest_version_info = get_latest_version(domain_name)
@@ -78,7 +80,8 @@ def migrate(request):
             while retries < MAX_RETRIES:
                 try:
                     new_s3_version_id = upload_db_to_s3(db_path)
-                    update_version(domain_name, new_version, new_s3_version_id, current_version)
+                    update_version(domain_name, new_version,
+                                   new_s3_version_id, current_version)
                     return JsonResponse({'message': 'Migrations completed successfully.'}, status=200)
                 except Exception as e:
                     logger.error(f'Version update conflict: {str(e)}')
@@ -97,6 +100,7 @@ def migrate(request):
                     db_path = download_db_from_s3(s3_version_id)
         except Exception as e:
             return JsonResponse({'message': str(e)}, status=500)
+
 
 def download_db_from_s3(version_id=None):
     object_key = 'db.sqlite3'
