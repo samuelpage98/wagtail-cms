@@ -3,15 +3,6 @@ import os
 import boto3
 
 print('In Cloud Settings')
-SESSION_ENGINE = 'dynamodb_sessions.backends.dynamodb'
-DYNAMODB_SESSIONS_BOTO_SESSION = boto3.session.Session(
-    aws_access_key_id=os.environ['AWS_ACCESS_KEY_ID'],
-    aws_secret_access_key=os.environ['AWS_SECRET_ACCESS_KEY'],
-    aws_session_token=os.environ['AWS_SESSION_TOKEN']
-)
-DYNAMODB_SESSIONS_AWS_REGION_NAME = 'eu-west-2'
-DYNAMODB_SESSIONS_TABLE_NAME = os.environ['DYNAMODB_SESSIONS_TABLE_NAME']
-
 
 STORAGES = {
     "default": {

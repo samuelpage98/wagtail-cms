@@ -11,11 +11,9 @@ whitenoise = "*"
 django-nested-admin = "*"
 django-jazzmin = "*"
 wagtail = "*"
-django-dynamodb-sessions = "*"
 django-storages = {extras = ["s3"], version = "*"}
 django-crispy-forms = "*"
 crispy-forms-gds = "*"
-django-admin-commands2 = "*"
 
 [dev-packages]
 boto3 = "*"
