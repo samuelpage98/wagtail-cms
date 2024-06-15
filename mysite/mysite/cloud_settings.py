@@ -2,6 +2,7 @@
 import os
 import boto3
 
+print('In Cloud Settings')
 SESSION_ENGINE = 'dynamodb_sessions.backends.dynamodb'
 DYNAMODB_SESSIONS_BOTO_SESSION = boto3.session.Session(
     aws_access_key_id=os.environ['AWS_ACCESS_KEY_ID'],
