@@ -1,4 +1,6 @@
 # Cloud extra settings
+import os
+import boto3
 
 SESSION_ENGINE = 'dynamodb_sessions.backends.dynamodb'
 DYNAMODB_SESSIONS_BOTO_SESSION = boto3.session.Session(
