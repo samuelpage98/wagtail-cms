@@ -209,7 +209,7 @@ export class InfraStack extends cdk.Stack {
       timeout: cdk.Duration.seconds(300),
       code: lambda.Code.fromAsset(path.join(__dirname, "housekeeping")),
       environment: {
-        BUCKET: this.bucket.bucketName,
+        BUCKET_NAME: this.bucket.bucketName,
         TABLE_NAME: versionTable.tableName,
       },
     });
