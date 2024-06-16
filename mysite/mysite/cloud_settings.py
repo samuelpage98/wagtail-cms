@@ -29,7 +29,11 @@ CSRF_TRUSTED_ORIGINS = ['https://' +
 
 
 WHITENOISE_MAX_AGE = 60*60*24
-STATIC_URL = "/static/"
+
+STATIC_HOST = "https://" + \
+    os.environ['CLOUDFRONT_DISTRIBUTION_DOMAINNAME'] if not DEBUG else ""
+STATIC_URL = STATIC_HOST + "/static/"
+
 
 WAGTAILADMIN_BASE_URL = 'https://' + \
     os.environ['CLOUDFRONT_DISTRIBUTION_DOMAINNAME']
