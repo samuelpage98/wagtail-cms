@@ -23,6 +23,7 @@ export class PipelineStack extends cdk.Stack {
           authentication: cdk.SecretValue.secretsManager("github-token"),
         }),
         commands: [
+          "pipenv install",
           "python mysite/manage.py collectstatic",
           "cd infra",
           "npm install",
