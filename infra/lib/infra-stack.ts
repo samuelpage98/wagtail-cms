@@ -214,6 +214,9 @@ export class InfraStack extends cdk.Stack {
       },
     });
 
+    versionTable.grantReadWriteData(this.housekeepingLambda);
+    this.bucket.grantReadWrite(this.housekeepingLambda);
+
     const lambda_cw_event = new cdk.aws_events.Rule(this, "HouseKeeping", {
       description: "Clean up data once an hour for django thing",
       enabled: true,
