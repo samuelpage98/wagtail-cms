@@ -18,6 +18,7 @@ interface InfraStackProps extends cdk.StackProps {
 
 export class InfraStack extends cdk.Stack {
   public readonly migrationLambda: lambda.Function;
+  public readonly housekeepingLambda: lambda.Function;
   public readonly bucket: s3.Bucket;
 
   constructor(scope: Construct, id: string, props: InfraStackProps) {
@@ -188,16 +189,38 @@ export class InfraStack extends cdk.Stack {
     fn.addToRolePolicy(invalidationPolicy);
 
     // Define the migration Lambda function with the pre-created role
-    this.migrationLambda = new lambda.Function(this, 'MigrationLambda', {
+    this.migrationLambda = new lambda.Function(this, "MigrationLambda", {
       tracing: lambda.Tracing.ACTIVE,
       runtime: lambda.Runtime.PYTHON_3_9,
-      handler: 'migrate_function.handler',
+      handler: "migrate_function.handler",
       memorySize: 1024,
       timeout: cdk.Duration.seconds(300),
-      code: lambda.Code.fromAsset(path.join(__dirname, 'lambda')),
+      code: lambda.Code.fromAsset(path.join(__dirname, "lambda")),
       environment: {
-        'API_ENDPOINT': `https://${apiGateway.restApiId}.execute-api.${this.region}.amazonaws.com/${prefix}`
+        API_ENDPOINT: `https://${apiGateway.restApiId}.execute-api.${this.region}.amazonaws.com/${prefix}`,
       },
+    });
+
+    // housekeeping
+    this.housekeepingLambda = new lambda.Function(this, "HousekeepingLambda", {
+      runtime: lambda.Runtime.PYTHON_3_9,
+      handler: "housekeeping.handler",
+      memorySize: 1024,
+      timeout: cdk.Duration.seconds(300),
+      code: lambda.Code.fromAsset(path.join(__dirname, "housekeeping")),
+      environment: {
+        BUCKET: this.bucket.bucketName,
+        TABLE: versionTable.tableName,
+      },
+    });
+
+    const lambda_cw_event = new cdk.aws_events.Rule(this, "HouseKeeping", {
+      description: "Clean up data once an hour for django thing",
+      enabled: true,
+      schedule: cdk.aws_events.Schedule.rate(cdk.Duration.hours(1)),
+      targets: [
+        new cdk.aws_events_targets.LambdaFunction(this.housekeepingLambda),
+      ],
     });
 
     new cdk.CfnOutput(this, `CloudFrontWWW`, {

@@ -39,7 +39,7 @@ cdk deploy
 
 ```
 export CLOUDFRONT_DISTRIBUTION_DOMAINNAME=d1t0ym9xad15zz.cloudfront.net
-export BUCKET_NAME=infrastack-djangobucketbcbbce8f-mpcaypcryfck
+export BUCKET_NAME=dev-infrastack-djangobucketbc6e918a-k4oodxzffone
 export CLOUDFRONT_DISTRIBUTION_ID=E1SSVT4MU1CCD2
 export DYNAMODB_SESSIONS_TABLE_NAME=InfraStack-Sessions8896A56D-1MKC6C98B610I
 export DJANGO_LOG_LEVEL=DEBUG
