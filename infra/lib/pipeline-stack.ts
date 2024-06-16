@@ -24,7 +24,7 @@ export class PipelineStack extends cdk.Stack {
         }),
         commands: [
           "pipenv install",
-          "python mysite/manage.py collectstatic",
+          "pipenv run python mysite/manage.py collectstatic",
           "cd infra",
           "npm install",
           "npm run build",
