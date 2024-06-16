@@ -210,7 +210,7 @@ export class InfraStack extends cdk.Stack {
       code: lambda.Code.fromAsset(path.join(__dirname, "housekeeping")),
       environment: {
         BUCKET: this.bucket.bucketName,
-        TABLE: versionTable.tableName,
+        TABLE_NAME: versionTable.tableName,
       },
     });
 
