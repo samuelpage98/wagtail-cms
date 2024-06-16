@@ -60,6 +60,7 @@ export class InfraStack extends cdk.Stack {
         TABLE_NAME: versionTable.tableName,
         DJANGO_LOG_LEVEL: "DEBUG",
         DYNAMODB_SESSIONS_TABLE_NAME: sessionsTable.tableName,
+        DEBUG: "False",
       },
     });
 
