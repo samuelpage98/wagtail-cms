@@ -133,6 +133,7 @@ MEDIA_ROOT = os.path.join(os.path.dirname(__file__), '..')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+STATIC_ROOT = BASE_DIR / "staticfiles"
 
 if os.getenv('AWS_EXECUTION_ENV'):
     print('Configuring for cloud')
