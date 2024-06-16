@@ -135,7 +135,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
-if os.getenv('AWS_EXECUTION_ENV'):
+if os.getenv('LAMBDA_TASK_ROOT'):
     print('Configuring for cloud')
     try:
         from .cloud_settings import *
