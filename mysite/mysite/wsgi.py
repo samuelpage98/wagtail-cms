@@ -7,6 +7,7 @@ For more information on this file, see
 https://docs.djangoproject.com/en/4.2/howto/deployment/wsgi/
 """
 from __future__ import annotations
+import sys
 from django.core.wsgi import get_wsgi_application
 from apig_wsgi import make_lambda_handler
 from apig_wsgi.compat import WSGIApplication
@@ -23,16 +24,21 @@ import random
 from django.core.management import call_command
 from django.http import JsonResponse
 import os
+import django
 logger = logging.getLogger()
 logger.setLevel("INFO")
 
+
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(BASE_DIR)
+os.environ['DJANGO_SETTINGS_MODULE'] = 'mysite.settings'
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'mysite.settings')
+os.environ['SQLITE_DB_PATH'] = '/tmp/db.sqlite3'
+settings.DATABASES['default']['NAME'] = '/tmp/db.sqlite3'
 
-application = cast(WSGIApplication, get_wsgi_application())
-
+django.setup()
 
 if os.getenv('AWS_EXECUTION_ENV'):
-    apig_wsgi_handler = make_lambda_handler(application, binary_support=True)
     dynamodb_client = boto3.client('dynamodb')
     s3_client = boto3.client('s3')
     table_name = os.environ['TABLE_NAME']
@@ -188,6 +194,7 @@ def createSingleLogEvent(event: dict[str, Any], response: dict[str, Any]):
 
 
 def lambda_handler(event: dict[str, Any], context: dict[str, Any]) -> dict[str, Any]:
+
     domain_name = 'example.com'
 
     # Get the latest version info
@@ -197,8 +204,12 @@ def lambda_handler(event: dict[str, Any], context: dict[str, Any]) -> dict[str, 
         current_version = latest_version_info['version']
     else:
         # Initialize with a new object if no version exists
-        current_version = None
-        s3_version_id = None
+        print('Empty DB Initialising')
+        call_command('migrate')
+        new_s3_version_id = upload_db_to_s3(db_path)
+        update_version(domain_name, '1',
+                       new_s3_version_id, current_version)
+        return
 
     # Download the latest database from S3 using the latest version's version_id
     db_path = download_db_from_s3(s3_version_id)
@@ -209,7 +220,16 @@ def lambda_handler(event: dict[str, Any], context: dict[str, Any]) -> dict[str, 
     # Ensure Django settings use the updated database path
     settings.DATABASES['default']['NAME'] = db_path
 
+    if 'command' in event:
+        if event['command'] == 'migrate':
+            print('Performing DB Migration')
+            call_command('makemigrations')
+            call_command('migrate')
+            return
+
     # Log event and response
+    application = cast(WSGIApplication, get_wsgi_application())
+    apig_wsgi_handler = make_lambda_handler(application, binary_support=True)
     response = apig_wsgi_handler(event, context)
     logger.info(json.dumps(createSingleLogEvent(
         event, response), indent=2, sort_keys=True))
@@ -242,3 +262,157 @@ def lambda_handler(event: dict[str, Any], context: dict[str, Any]) -> dict[str, 
                 response = apig_wsgi_handler(event, context)
 
     return response
+
+
+def createSampleWeb(path):
+    return {
+        "body": "",
+        "resource": "/{proxy+}",
+        "path": path,
+        "httpMethod": "GET",
+        "isBase64Encoded": 'false',
+        "queryStringParameters": {
+            "foo": "bar"
+        },
+        "multiValueQueryStringParameters": {
+            "foo": [
+                "bar"
+            ]
+        },
+        "pathParameters": {
+            "proxy": "/path/to/resource"
+        },
+        "stageVariables": {
+            "baz": "qux"
+        },
+        "headers": {
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+            "Accept-Encoding": "gzip, deflate, sdch",
+            "Accept-Language": "en-US,en;q=0.8",
+            "Cache-Control": "max-age=0",
+            "CloudFront-Forwarded-Proto": "https",
+            "CloudFront-Is-Desktop-Viewer": "true",
+            "CloudFront-Is-Mobile-Viewer": "false",
+            "CloudFront-Is-SmartTV-Viewer": "false",
+            "CloudFront-Is-Tablet-Viewer": "false",
+            "CloudFront-Viewer-Country": "US",
+            "Host": "1234567890.execute-api.us-east-1.amazonaws.com",
+            "Upgrade-Insecure-Requests": "1",
+            "User-Agent": "Custom User Agent String",
+            "Via": "1.1 08f323deadbeefa7af34d5feb414ce27.cloudfront.net (CloudFront)",
+            "X-Amz-Cf-Id": "cDehVQoZnx43VYQb9j2-nvCh-9z396Uhbp027Y2JvkCPNLmGJHqlaA==",
+            "X-Forwarded-For": "127.0.0.1, 127.0.0.2",
+            "X-Forwarded-Port": "443",
+            "X-Forwarded-Proto": "https"
+        },
+        "multiValueHeaders": {
+            "Accept": [
+                "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8"
+            ],
+            "Accept-Encoding": [
+                "gzip, deflate, sdch"
+            ],
+            "Accept-Language": [
+                "en-US,en;q=0.8"
+            ],
+            "Cache-Control": [
+                "max-age=0"
+            ],
+            "CloudFront-Forwarded-Proto": [
+                "https"
+            ],
+            "CloudFront-Is-Desktop-Viewer": [
+                "true"
+            ],
+            "CloudFront-Is-Mobile-Viewer": [
+                "false"
+            ],
+            "CloudFront-Is-SmartTV-Viewer": [
+                "false"
+            ],
+            "CloudFront-Is-Tablet-Viewer": [
+                "false"
+            ],
+            "CloudFront-Viewer-Country": [
+                "US"
+            ],
+            "Host": [
+                "0123456789.execute-api.us-east-1.amazonaws.com"
+            ],
+            "Upgrade-Insecure-Requests": [
+                "1"
+            ],
+            "User-Agent": [
+                "Custom User Agent String"
+            ],
+            "Via": [
+                "1.1 08f323deadbeefa7af34d5feb414ce27.cloudfront.net (CloudFront)"
+            ],
+            "X-Amz-Cf-Id": [
+                "cDehVQoZnx43VYQb9j2-nvCh-9z396Uhbp027Y2JvkCPNLmGJHqlaA=="
+            ],
+            "X-Forwarded-For": [
+                "127.0.0.1, 127.0.0.2"
+            ],
+            "X-Forwarded-Port": [
+                "443"
+            ],
+            "X-Forwarded-Proto": [
+                "https"
+            ]
+        },
+        "requestContext": {
+            "accountId": "123456789012",
+            "resourceId": "123456",
+            "stage": "prod",
+            "requestId": "c6af9ac6-7b61-11e6-9a41-93e8deadbeef",
+            "requestTime": "09/Apr/2015:12:34:56 +0000",
+            "requestTimeEpoch": 1428582896000,
+            "identity": {
+                "cognitoIdentityPoolId": None,
+                "accountId": None,
+                "cognitoIdentityId": None,
+                "caller": None,
+                "accessKey": None,
+                "sourceIp": "127.0.0.1",
+                "cognitoAuthenticationType": None,
+                "cognitoAuthenticationProvider": None,
+                "userArn": None,
+                "userAgent": "Custom User Agent String",
+                "user": None
+            },
+            "path": "/prod/path/to/resource",
+            "resourcePath": "/{proxy+}",
+            "httpMethod": "POST",
+            "apiId": "1234567890",
+            "protocol": "HTTP/1.1"
+        }
+    }
+
+
+if __name__ == '__main__':
+    import argparse
+    # Create the parser
+    parser = argparse.ArgumentParser(description="Invoke lambda locally.")
+    # Add the --command argument
+    parser.add_argument('--command', choices=['migrate', 'webrequest'], required=True,
+                        help="The command to execute. Choices are 'migrate' or 'webrequest'.")
+
+    # Add the --path argument, but it's only required if the command is 'webrequest'
+    parser.add_argument('--path', required=False,
+                        help="The path to be used if the command is 'webrequest'. Required if --command is 'webrequest'.")
+    # Parse the arguments
+    args = parser.parse_args()
+
+    # Check if the --command is 'webrequest' and validate the --path argument
+    if args.command == 'webrequest' and args.path is None:
+        parser.error("--path is required when --command is 'webrequest'")
+
+    # Process the command
+    if args.command == 'migrate':
+        print("Executing migration...")
+        lambda_handler({'command': 'migrate'}, {})
+    elif args.command == 'webrequest':
+        print(f"Processing web request for path: {args.path}")
+        # Add your web request logic here
+        lambda_handler(createSampleWeb(args.path), {})
