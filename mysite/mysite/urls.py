@@ -28,8 +28,9 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('cms/', include(wagtailadmin_urls)),
     path('documents/', include(wagtaildocs_urls)),
-    path('pages/', include(wagtail_urls)),
-    path('', include('cms.urls')),
+    path('', include(wagtail_urls)),
+    # path('pages/', include(wagtail_urls)),
+    # path('', include('cms.urls')),
 
 
 

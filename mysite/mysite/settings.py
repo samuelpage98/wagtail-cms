@@ -9,7 +9,7 @@ mimetypes.add_type("image/svg+xml", ".svgz", True)
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = 'django-insecure-6kk)r$tlbt#8g@9*=z#)ybh&85jdn+5gp=#*91o8*$$d=c192a'
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
@@ -24,6 +24,7 @@ INSTALLED_APPS = [
     'jazzmin',
     'yapp',
     'cms',
+
     'nested_admin',
     'django.contrib.admin',
     'django.contrib.auth',

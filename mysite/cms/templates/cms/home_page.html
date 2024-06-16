@@ -1,0 +1,17 @@
+{% extends "cms/base.html" %}
+
+{% load wagtailcore_tags crispy_forms_tags crispy_forms_gds %}
+{% load static %}
+
+{% block content %}
+
+
+<h1 class="govuk-heading-xl">
+    {{ page.title }}
+</h1>
+
+{% for block in page.body %}
+<section>{% include_block block %}</section>
+{% endfor %}
+
+{% endblock %}
