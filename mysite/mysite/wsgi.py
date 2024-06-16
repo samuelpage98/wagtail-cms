@@ -55,7 +55,7 @@ def migrate(request):
             current_version = latest_version_info['version']
         else:
             # Initialize with a new object if no version exists
-            current_version = 0
+            current_version = None
             s3_version_id = None
 
         # Download the latest database from S3 using the latest version's version_id
