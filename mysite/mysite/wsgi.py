@@ -195,6 +195,39 @@ def createSingleLogEvent(event: dict[str, Any], response: dict[str, Any]):
 
 def lambda_handler(event: dict[str, Any], context: dict[str, Any]) -> dict[str, Any]:
 
+    #TODO
+    #get rid of domain stuff from every
+
+
+    # get existing s3 if it exists
+    # if no file exists in s3
+    #         drop versions tabl
+    #         create new db.sqlite3  by calling migrate
+    #         create super user - pulling super user creds from secrets
+    #         upload new file
+    # if version ddb points to does not exist (but versions do exist in s3)
+    #         pull latest s3 instead
+    #         remainder of logic conitnues as per usual (when it writes the ddb will be updted)
+    # generally refactor so no code reptition
+    # test delete file from s3 and it resets
+    # test bad dynamo db version and it resets?
+    # probelm to solve:   how big a version number cab ddb take?  when to reset??????  how???
+    #  in cloud settings - DEBUG is from env, but env is a string.  how to coerce 'False' into False (Bool)
+
+    #   Debug = True if os.environ['DEBUG'] == 'True' else False
+
+    #
+    # next next next next
+    #     imagine two government departments
+    #          homepage = gov.uk
+    #          department home page  underneath it (department name, cabinet secretary + pic)
+    #                 service home page e.g. covid
+    #                          form 1
+    #                          form 2
+
+    # run locally:  pipenv run pyton manage.py runserver --nostatic
+    
+    
     domain_name = 'example.com'
 
     # Get the latest version info
