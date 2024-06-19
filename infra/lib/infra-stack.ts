@@ -64,6 +64,23 @@ export class InfraStack extends cdk.Stack {
       },
     });
 
+    // Grant permissions to access Secrets Manager secrets
+    const secretsManagerPolicy = new iam.PolicyStatement({
+      actions: ["secretsmanager:GetSecretValue"],
+      resources: [
+        `arn:aws:secretsmanager:${this.region}:${this.account}:secret:SUPER_USEREMAIL`,
+        `arn:aws:secretsmanager:${this.region}:${this.account}:secret:SUPER_USERNAME`,
+        `arn:aws:secretsmanager:${this.region}:${this.account}:secret:SUPER_USERPASSWORD`,
+        // Add more secrets as needed
+      ],
+    });
+
+    fn.role?.attachInlinePolicy(
+      new iam.Policy(this, "SecretsManagerAccessPolicy", {
+        statements: [secretsManagerPolicy],
+      })
+    );
+
     const accessLogGroup = new logs.LogGroup(this, `AccessLogGroup`, {
       logGroupName: `/aws/api-gateway/cms-${prefix}`,
       retention: logs.RetentionDays.ONE_WEEK,
