@@ -35,6 +35,12 @@ npm i -g cdk
 cdk deploy
 ```
 
+# To set secrets
+
+```
+aws secretsmanager create-secret --name <secret> --secret-string <value>
+```
+
 # To test locally with whitenoise instead of runserver static
 
 ```
