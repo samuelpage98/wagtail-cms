@@ -229,6 +229,12 @@ def lambda_handler(event: dict[str, Any], context: dict[str, Any]) -> dict[str, 
                          f'--email={sm.get_secret_value(SecretId="SUPER_USEREMAIL")["SecretString"]}',
                          f'--username={sm.get_secret_value(SecretId="SUPER_USERNAME")["SecretString"]}'
                          )
+            from django.contrib.auth.models import User
+            u = User.objects.get(username=sm.get_secret_value(
+                SecretId="SUPER_USERNAME")["SecretString"])
+            u.set_password(sm.get_secret_value(
+                SecretId="SUPER_USERPASSWORD")["SecretString"])
+            u.save()
             clear_version_table()
             force_write = True
 
