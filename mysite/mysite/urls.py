@@ -29,7 +29,7 @@ urlpatterns = [
     path('documents/', include(wagtaildocs_urls)),
     path('', include(wagtail_urls)),
     # path('pages/', include(wagtail_urls)),
-    # path('', include('cms.urls')),
+    path('/myapp/', include('cms.urls')),
 
 
 
