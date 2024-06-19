@@ -221,7 +221,11 @@ def lambda_handler(event: dict[str, Any], context: dict[str, Any]) -> dict[str, 
             f'Version {latest_version_info["s3VersionId"]} in DDB does not exist')
         # the version pointed to by ddb didn't exist, so just get latest
         if not download_db_from_s3():
+
             # and if that doesn't exist then just create a new one
+            # delete /tmp/db.sqlite3
+            os.remove('/tmp/db.sqlite3') if os.path.exists(
+                '/tmp/db.sqlite3') else None
             sm = boto3.client('secretsmanager')
             print('Empty DB Initialising')
             call_command('migrate')
