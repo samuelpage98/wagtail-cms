@@ -221,12 +221,13 @@ def lambda_handler(event: dict[str, Any], context: dict[str, Any]) -> dict[str, 
         # the version pointed to by ddb didn't exist, so just get latest
         if not download_db_from_s3():
             # and if that doesn't exist then just create a new one
+            sm = boto3.client('secretsmanager')
             print('Empty DB Initialising')
             call_command('migrate')
             call_command('createsuperuser',
                          '--no-input',
-                         f'--email={os.environ["SUPERUSER_EMAIL"]}',
-                         f'--username={os.environ["SUPERUSER_USERNAME"]}'
+                         f'--email={sm.get_secret_value(SecretId="SUPER_USEREMAIL")["SecretString"]}',
+                         f'--username={sm.get_secret_value(SecretId="SUPER_USERNAME")["SecretString"]}'
                          )
             clear_version_table()
             force_write = True
