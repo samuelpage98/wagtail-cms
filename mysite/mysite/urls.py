@@ -24,12 +24,13 @@ from django.conf import settings
 from django.conf.urls.static import static
 
 urlpatterns = [
+
+    path('myapp/', include('cms.urls')),
     path('admin/', admin.site.urls),
     path('cms/', include(wagtailadmin_urls)),
     path('documents/', include(wagtaildocs_urls)),
     path('', include(wagtail_urls)),
     # path('pages/', include(wagtail_urls)),
-    path('/myapp/', include('cms.urls')),
 
 
 
