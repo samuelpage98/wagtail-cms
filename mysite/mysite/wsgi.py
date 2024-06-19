@@ -36,6 +36,7 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'mysite.settings')
 os.environ['SQLITE_DB_PATH'] = '/tmp/db.sqlite3'
 settings.DATABASES['default']['NAME'] = '/tmp/db.sqlite3'
 
+application = cast(WSGIApplication, get_wsgi_application())
 
 django.setup()
 
@@ -262,13 +263,13 @@ def lambda_handler(event: dict[str, Any], context: dict[str, Any]) -> dict[str, 
             def action(event, context): return (
                 print('Performing Web Request'),
                 (make_lambda_handler(
-                    cast(WSGIApplication, get_wsgi_application()),
+                    application,
                     binary_support=True)(event, context)))
     else:
         def action(event, context):
             print('Performing Web Request')
             response = (make_lambda_handler(
-                cast(WSGIApplication, get_wsgi_application()),
+                application,
                 binary_support=True)(event, context))
             return response
 

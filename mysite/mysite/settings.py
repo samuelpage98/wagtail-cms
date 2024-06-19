@@ -9,7 +9,14 @@ mimetypes.add_type("image/svg+xml", ".svgz", True)
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = 'django-insecure-6kk)r$tlbt#8g@9*=z#)ybh&85jdn+5gp=#*91o8*$$d=c192a'
-DEBUG = True
+
+
+def str_to_bool(value: str) -> bool:
+    """Convert a string representation of truth to boolean."""
+    return value.lower() in ['true', '1', 'yes', 'y']
+
+
+DEBUG = str_to_bool(os.environ.get('DEBUG', "False"))
 
 ALLOWED_HOSTS = ['*']
 

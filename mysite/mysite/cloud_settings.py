@@ -20,7 +20,7 @@ STORAGES = {
         "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
     },
 }
-DEBUG = os.environ['DEBUG']
+
 
 ALLOWED_HOSTS = ['*']
 
