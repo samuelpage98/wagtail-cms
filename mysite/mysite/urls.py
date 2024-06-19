@@ -19,7 +19,6 @@ from django.urls import path, include
 from wagtail.admin import urls as wagtailadmin_urls
 from wagtail import urls as wagtail_urls
 from wagtail.documents import urls as wagtaildocs_urls
-from .wsgi import migrate
 import os
 from django.conf import settings
 from django.conf.urls.static import static
@@ -36,9 +35,6 @@ urlpatterns = [
 
 ]
 
-
-if os.getenv('AWS_EXECUTION_ENV'):
-    urlpatterns.append(path('migrate/', migrate))
 
 if os.getenv('AWS_EXECUTION_ENV') == None:
     urlpatterns += static(settings.MEDIA_URL,

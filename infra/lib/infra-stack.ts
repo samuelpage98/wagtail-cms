@@ -61,6 +61,12 @@ export class InfraStack extends cdk.Stack {
         DJANGO_LOG_LEVEL: "DEBUG",
         DYNAMODB_SESSIONS_TABLE_NAME: sessionsTable.tableName,
         DEBUG: "False",
+        SUPER_USERNAME:
+          cdk.SecretValue.secretsManager("SUPER_USERNAME").toString(),
+        SUPER_USERPASSWORD:
+          cdk.SecretValue.secretsManager("SUPER_USERPASSWORD").toString(),
+        SUPER_USEREMAIL:
+          cdk.SecretValue.secretsManager("SUPER_USEREMAIL").toString(),
       },
     });
 

@@ -35,15 +35,21 @@ npm i -g cdk
 cdk deploy
 ```
 
+# To set secrets
+
+```
+aws secretsmanager create-secret --name <secret> --secret-string <value>
+```
+
 # To test locally with whitenoise instead of runserver static
 
 ```
-export CLOUDFRONT_DISTRIBUTION_DOMAINNAME=d1t0ym9xad15zz.cloudfront.net
+export CLOUDFRONT_DISTRIBUTION_DOMAINNAME=d3ag4u0wverghk.cloudfront.net
 export BUCKET_NAME=dev-infrastack-djangobucketbc6e918a-k4oodxzffone
 export CLOUDFRONT_DISTRIBUTION_ID=E1SSVT4MU1CCD2
-export DYNAMODB_SESSIONS_TABLE_NAME=InfraStack-Sessions8896A56D-1MKC6C98B610I
+export DYNAMODB_SESSIONS_TABLE_NAME=Dev-InfraStack-Sessions8896A56D-IPNJ1EI9KM
 export DJANGO_LOG_LEVEL=DEBUG
-export TABLE_NAME=InfraStack-VersionTable780A7FFE-G4E0DKM4OVMA
+export TABLE_NAME=Dev-InfraStack-VersionTable780A7FFE-F4NFZ0CZHQ8Z
 pipenv run python manage.py runserver --nostatic
 ```
 
