@@ -68,9 +68,9 @@ export class InfraStack extends cdk.Stack {
     const secretsManagerPolicy = new iam.PolicyStatement({
       actions: ["secretsmanager:GetSecretValue"],
       resources: [
-        `arn:aws:secretsmanager:${this.region}:${this.account}:secret:SUPER_USEREMAIL`,
-        `arn:aws:secretsmanager:${this.region}:${this.account}:secret:SUPER_USERNAME`,
-        `arn:aws:secretsmanager:${this.region}:${this.account}:secret:SUPER_USERPASSWORD`,
+        `arn:aws:secretsmanager:${this.region}:${this.account}:secret:SUPER_USEREMAIL*`,
+        `arn:aws:secretsmanager:${this.region}:${this.account}:secret:SUPER_USERNAME*`,
+        `arn:aws:secretsmanager:${this.region}:${this.account}:secret:SUPER_USERPASSWORD*`,
         // Add more secrets as needed
       ],
     });
