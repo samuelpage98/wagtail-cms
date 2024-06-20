@@ -5,3 +5,4 @@ original_images/
 images/
 mysite/db.sqlite3
 mysite/staticfiles/
+documents/
