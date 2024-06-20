@@ -68,7 +68,7 @@ CRISPY_TEMPLATE_PACK = "gds"
 WAGTAIL_SITE_NAME = 'John Tech'
 WAGTAILDOCS_EXTENSIONS = ['csv', 'docx', 'key',
                           'odt', 'pdf', 'pptx', 'rtf', 'txt', 'xlsx', 'zip']
-WAGTAILADMIN_BASE_URL = 'https://localhost'
+WAGTAILADMIN_BASE_URL = 'http://localhost:8000'
 
 
 MIDDLEWARE = [
@@ -136,8 +136,8 @@ USE_I18N = True
 
 USE_TZ = True
 
-MEDIA_URL = 'https://localhost/media/'
-MEDIA_ROOT = os.path.join(os.path.dirname(__file__), '..')
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
