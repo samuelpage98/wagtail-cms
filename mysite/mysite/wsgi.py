@@ -277,7 +277,7 @@ def lambda_handler(event: dict[str, Any], context: dict[str, Any]) -> dict[str, 
     if event['httpMethod'] in ['POST', 'PUT', 'DELETE'] or force_write:
         print('Attempting to save back to S3')
         retries = 0
-        RETRY_DELAY = [0.01, 0.005]
+        RETRY_DELAY = [0.05, 0.05]
         MAX_RETRIES = 10
 
         file_hash_after = hashlib.md5(
