@@ -309,9 +309,11 @@ def lambda_handler(event: dict[str, Any], context: dict[str, Any]) -> dict[str, 
                                    RETRY_DELAY[1], *RETRY_DELAY]
 
                     latest_version_info = get_latest_version(domain_name)
+
                     if latest_version_info:
                         s3_version_id = latest_version_info['s3VersionId']
                         current_version = latest_version_info['version']
+                        new_version = current_version + 1
                     else:
                         s3_version_id = None
                         current_version = 0
