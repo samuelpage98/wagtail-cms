@@ -1,52 +1,40 @@
-"""
-WSGI config for mysite project.
-
-It exposes the WSGI callable as a module-level variable named ``application``.
-
-For more information on this file, see
-https://docs.djangoproject.com/en/4.2/howto/deployment/wsgi/
-"""
 from __future__ import annotations
 import sys
 from django.core.wsgi import get_wsgi_application
 from apig_wsgi import make_lambda_handler
 from apig_wsgi.compat import WSGIApplication
-from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
 from typing import cast
 from typing import Any
-import json
 import os
 import logging
 import boto3
 import time
-import random
+import hashlib
 from django.core.management import call_command
-from django.http import JsonResponse
-import os
+
 import django
+
+
 logger = logging.getLogger()
 logger.setLevel("INFO")
 
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.append(BASE_DIR)
 os.environ['DJANGO_SETTINGS_MODULE'] = 'mysite.settings'
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'mysite.settings')
-os.environ['SQLITE_DB_PATH'] = '/tmp/db.sqlite3'
-settings.DATABASES['default']['NAME'] = '/tmp/db.sqlite3'
+
+# Ensure the settings module is in the path
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+print(sys.path)
+
 
 application = cast(WSGIApplication, get_wsgi_application())
 
 django.setup()
 
-dynamodb_client = boto3.client('dynamodb')
-s3_client = boto3.client('s3')
-table_name = os.environ['TABLE_NAME']
-bucket_name = os.environ['BUCKET_NAME']
-
 
 def download_db_from_s3(version_id=None):
+    s3_client = boto3.client('s3')
+    bucket_name = os.environ['BUCKET_NAME']
     object_key = 'db.sqlite3'
     download_path = '/tmp/db.sqlite3'
     extra_args = {"VersionId": version_id} if version_id else {}
@@ -59,12 +47,39 @@ def download_db_from_s3(version_id=None):
                                       download_path, ExtraArgs=extra_args))
         print('Successfully downloaded')
         return True
-    except:
+    except Exception:
         print('Failed to download')
         return False
 
 
+def delete_s3_version(version_id):
+    try:
+        s3_client = boto3.client('s3')
+        bucket_name = os.environ['BUCKET_NAME']
+        object_key = 'db.sqlite3'
+        # Delete the specific version of the object
+        response = s3_client.delete_object(
+            Bucket=bucket_name,
+            Key=object_key,
+            VersionId=version_id
+        )
+        print(
+            f"Successfully deleted version {version_id} of {object_key} from bucket {bucket_name}.")
+        return response
+
+    except NoCredentialsError:
+        print("Error: AWS credentials not found.")
+    except PartialCredentialsError:
+        print("Error: Incomplete AWS credentials.")
+    except ClientError as e:
+        print(f"An error occurred: {e}")
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
+
+
 def upload_db_to_s3(db_path='/tmp/db.sqlite3'):
+    s3_client = boto3.client('s3')
+    bucket_name = os.environ['BUCKET_NAME']
     object_key = 'db.sqlite3'
     s3_client.upload_file(db_path, bucket_name, object_key)
     head_response = s3_client.head_object(Bucket=bucket_name, Key=object_key)
@@ -73,6 +88,9 @@ def upload_db_to_s3(db_path='/tmp/db.sqlite3'):
 
 def get_latest_version(domain_name: str) -> dict:
     try:
+
+        dynamodb_client = boto3.client('dynamodb')
+        table_name = os.environ['TABLE_NAME']
         response = dynamodb_client.query(
             TableName=table_name,
             KeyConditionExpression='domainName = :domainName',
@@ -102,7 +120,10 @@ def get_latest_version(domain_name: str) -> dict:
 
 def update_version(domain_name, new_version, s3_version_id, expected_version=None):
     try:
-        response = dynamodb_client.put_item(
+
+        dynamodb_client = boto3.client('dynamodb')
+        table_name = os.environ['TABLE_NAME']
+        dynamodb_client.put_item(
             TableName=table_name,
             Item={
                 'domainName': {'S': domain_name},
@@ -132,6 +153,8 @@ def update_version(domain_name, new_version, s3_version_id, expected_version=Non
 
 def clear_version_table():
     dynamodb = boto3.resource('dynamodb')
+    dynamodb_client = boto3.client('dynamodb')
+    table_name = os.environ['TABLE_NAME']
     try:
         # Scan the table to get all the items
         response = dynamodb_client.scan(TableName=table_name)
@@ -172,37 +195,6 @@ def createSingleLogEvent(event: dict[str, Any], response: dict[str, Any]):
 
 
 def lambda_handler(event: dict[str, Any], context: dict[str, Any]) -> dict[str, Any]:
-
-    # TODO
-    # get rid of domain stuff from every
-
-    # get existing s3 if it exists
-    # if no file exists in s3
-    #         drop versions tabl
-    #         create new db.sqlite3  by calling migrate
-    #         create super user - pulling super user creds from secrets
-    #         upload new file
-    # if version ddb points to does not exist (but versions do exist in s3)
-    #         pull latest s3 instead
-    #         remainder of logic conitnues as per usual (when it writes the ddb will be updted)
-    # generally refactor so no code reptition
-    # test delete file from s3 and it resets
-    # test bad dynamo db version and it resets?
-    # probelm to solve:   how big a version number cab ddb take?  when to reset??????  how???
-    #  in cloud settings - DEBUG is from env, but env is a string.  how to coerce 'False' into False (Bool)
-
-    #   Debug = True if os.environ['DEBUG'] == 'True' else False
-
-    #
-    # next next next next
-    #     imagine two government departments
-    #          homepage = gov.uk
-    #          department home page  underneath it (department name, cabinet secretary + pic)
-    #                 service home page e.g. covid
-    #                          form 1
-    #                          form 2
-
-    # run locally:  pipenv run pyton manage.py runserver --nostatic
 
     domain_name = 'example.com'
 
@@ -277,41 +269,56 @@ def lambda_handler(event: dict[str, Any], context: dict[str, Any]) -> dict[str, 
                 binary_support=True)(event, context))
             return response
 
+    file_hash_before = hashlib.md5(
+        open('/tmp/db.sqlite3', 'rb').read()).hexdigest()
+    print('File hashbefore is '+file_hash_before)
     response = action(event, context)
 
     if event['httpMethod'] in ['POST', 'PUT', 'DELETE'] or force_write:
-
+        print('Attempting to save back to S3')
         retries = 0
         RETRY_DELAY = [0.01, 0.005]
         MAX_RETRIES = 10
 
-        while retries < MAX_RETRIES:
-            try:
-                new_s3_version_id = upload_db_to_s3()
-                update_version(domain_name, new_version,
-                               new_s3_version_id, current_version)
-                break  # Exit loop if successful
-            except Exception as e:
-                logger.error(f'Version update conflict: {str(e)}')
-                retries += 1
-                if retries >= MAX_RETRIES:
-                    logger.error('Max retries reached, aborting')
-                    raise
-                # progressively increase retry delay using fibonacci sequence
-                print(
-                    f"Retrying in {RETRY_DELAY[0]} seconds (retry {retries}/{MAX_RETRIES})")
-                time.sleep(RETRY_DELAY[0])
-                RETRY_DELAY = [RETRY_DELAY[0] + RETRY_DELAY[1], *RETRY_DELAY]
+        file_hash_after = hashlib.md5(
+            open('/tmp/db.sqlite3', 'rb').read()).hexdigest()
 
-                latest_version_info = get_latest_version(domain_name)
-                if latest_version_info:
-                    s3_version_id = latest_version_info['s3VersionId']
-                    current_version = latest_version_info['version']
-                else:
-                    s3_version_id = None
-                    current_version = 0
-                download_db_from_s3(s3_version_id)
-                response = action(event, context)
+        if file_hash_after != file_hash_before:
+            print('File has changed, attempting to save back')
+            while retries < MAX_RETRIES:
+                try:
+
+                    new_s3_version_id = upload_db_to_s3()
+                    update_version(domain_name, new_version,
+                                   new_s3_version_id, current_version)
+                    print('Uploaded successfully ' + new_s3_version_id)
+                    break  # Exit loop if successful
+                except Exception as e:
+                    logger.error(f'Version update conflict: {str(e)}')
+                    # delete failed  upload
+                    delete_s3_version(new_s3_version_id)
+                    retries += 1
+                    if retries >= MAX_RETRIES:
+                        logger.error('Max retries reached, aborting')
+                        raise
+                    # progressively increase retry delay using fibonacci sequence
+                    print(
+                        f"Retrying in {RETRY_DELAY[0]} seconds (retry {retries}/{MAX_RETRIES})")
+                    time.sleep(RETRY_DELAY[0])
+                    RETRY_DELAY = [RETRY_DELAY[0] +
+                                   RETRY_DELAY[1], *RETRY_DELAY]
+
+                    latest_version_info = get_latest_version(domain_name)
+                    if latest_version_info:
+                        s3_version_id = latest_version_info['s3VersionId']
+                        current_version = latest_version_info['version']
+                    else:
+                        s3_version_id = None
+                        current_version = 0
+                    download_db_from_s3(s3_version_id)
+                    response = action(event, context)
+        else:
+            print('File unchanged, not saving back')
 
     return response
 
@@ -321,7 +328,7 @@ def createSampleWeb(path):
         "body": "",
         "resource": "/{proxy+}",
         "path": path,
-        "httpMethod": "GET",
+        "httpMethod": "POST",
         "isBase64Encoded": 'false',
         "queryStringParameters": {
             "foo": "bar"
