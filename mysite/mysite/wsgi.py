@@ -278,7 +278,7 @@ def lambda_handler(event: dict[str, Any], context: dict[str, Any]) -> dict[str, 
         print('Attempting to save back to S3')
         retries = 0
         RETRY_DELAY = [0.05, 0.05]
-        MAX_RETRIES = 10
+        MAX_RETRIES = 100
 
         file_hash_after = hashlib.md5(
             open('/tmp/db.sqlite3', 'rb').read()).hexdigest()
