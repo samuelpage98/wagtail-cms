@@ -1,0 +1,131 @@
+/* General styles */
+body {
+  font-family: 'Caveat', sans-serif;
+  color: #654646;
+  margin: 0;
+  padding: 0;
+  background-color: #f9f6f3;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+  font-size: 1.2em;
+}
+
+.container {
+  width: 80%;
+  margin: 0 auto;
+}
+
+/* Header */
+header {
+  background-color: #f9f6f3;
+  padding: 10px 0;
+}
+
+header nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+header nav ul {
+  list-style: none;
+  display: flex;
+  gap: 20px;
+}
+
+header nav ul li {
+  display: inline;
+}
+
+/* Main content */
+main {
+  padding: 20px 0;
+
+}
+
+.recipe-title {
+  font-size: 5em;
+  font-weight: bold;
+  margin-bottom: 20px;
+  margin-top: 20px;
+}
+
+.introduction .rich-text p {
+  font-size: 1.6em;
+}
+
+.recipe-image-wrapper {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.recipe-image {
+  width: 100%;
+  height: auto;
+  border-radius: 10px;
+}
+
+/* Instructions and Ingredients */
+.recipe-content {
+  display: flex;
+  /* justify-content: space-between; */
+  gap: 40px;
+}
+
+.instructions,
+.ingredients {
+  flex: 1;
+}
+
+.instructions h2,
+.ingredients h2 {
+  font-size: 3em;
+  margin-bottom: 20px;
+  margin-top: 0;
+}
+
+.instructions .rich-text,
+.ingredients .rich-text {
+  font-size: 1.4em;
+  line-height: 1.6;
+}
+
+.ingredients .rich-text {
+  color: #cdd9cd;
+}
+
+.ingredients h2 {
+  color: #e5f0e5;
+}
+
+.ingredients {
+  background-color: #7f947f;
+  padding: 30px 30px 30px 30px;
+  border-radius: 10px;
+  flex-basis: 33%;
+  align-self: flex-start;
+}
+
+.instructions {
+  padding-top: 30px;
+  flex-basis: 66%;
+}
+
+.servings {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+/* Footer */
+footer {
+  background-color: #333;
+  color: #fff;
+  text-align: center;
+  padding: 20px 0;
+  margin-top: 40px;
+}

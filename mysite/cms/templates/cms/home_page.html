@@ -1,17 +1,38 @@
-{% extends "cms/base.html" %}
-
-{% load wagtailcore_tags crispy_forms_tags crispy_forms_gds %}
-{% load static %}
-
-{% block content %}
-
-
-<h1 class="govuk-heading-xl">
-    {{ page.title }}
-</h1>
-
-{% for block in page.body %}
-<section>{% include_block block %}</section>
-{% endfor %}
-
-{% endblock %}
+{% load static wagtailcore_tags wagtailimages_tags %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ self.title }}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400..700&display=swap" rel="stylesheet">
+    <link href="{% static 'css/home/styles.css' %}" rel="stylesheet">
+</head>
+<body>
+    <main class="container">
+    {% include "cms/includes/header.html" %}
+    <div class="header">
+        <h1 class="title">{{ self.title }}</h1>
+        <div class="introduction">
+            <div class="rich-text">{{ self.introduction|richtext }}</div> 
+        </div>
+    </div>
+        <div class="recipe-list">
+            {% for recipe in recipes %}
+                <div class="recipe-card">
+                    <a href="{{ recipe.url }}">
+                        {% image recipe.image width-400 as img %}
+                        <img src="{{ img.url }}" alt="{{ recipe.title }}" class="recipe-image">
+                        <div class="recipe-card-content">
+                            <h2>{{ recipe.title }}</h2>
+                            <p>{{ recipe.introduction|richtext|truncatewords:20 }}</p>
+                        </div>
+                    </a>
+                </div>
+            {% endfor %}
+        </div>
+    </main>
+</body>
+</html>

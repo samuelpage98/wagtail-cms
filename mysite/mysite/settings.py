@@ -30,7 +30,6 @@ STATIC_URL = "/static/"
 INSTALLED_APPS = [
 
     'jazzmin',
-    'yapp',
     'cms',
 
     'nested_admin',

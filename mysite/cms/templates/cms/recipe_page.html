@@ -1,0 +1,40 @@
+{% load static wagtailcore_tags wagtailimages_tags %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ self.title }}</title>
+    <link href="{% static 'css/recipes/styles.css' %}" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400..700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <main class="container">
+        {# Add your header template to your base template: #}
+        {% include "cms/includes/header.html" %}
+        <h1 class="recipe-title">{{ self.title }}</h1>
+        <div class="introduction">
+            <div class="rich-text">{{ self.introduction|richtext }}</div> 
+        </div>
+        <div class="recipe-image-wrapper">
+            {% image self.image fill-800x250 as img %}
+            <img src="{{ img.url }}" alt="{{ self.title }}" class="recipe-image">
+        </div>
+        <div class="recipe-content">
+            <div class="instructions">
+                <h2>Instructions</h2>
+                <div class="rich-text">{{ self.instructions|richtext }}</div>
+            </div>
+            <aside class="ingredients">
+                <h2>Ingredients</h2>
+                <div class="rich-text">{{ self.ingredients|richtext }}</div>
+            </aside>
+        </div>
+    </main>
+    <footer>
+        <p>&copy; {{ current_year }} {{ self.site_name }}. All rights reserved.</p>
+    </footer>
+</body>
+</html>
