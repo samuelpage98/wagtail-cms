@@ -6,6 +6,9 @@ from wagtail.admin.panels import FieldPanel
 from wagtail import blocks
 from wagtail.images.models import Image
 from .blocks import HeaderBlock
+import boto3
+import os
+import time
 
 class RecipePage(Page):
     introduction = RichTextField(blank=True)
@@ -41,3 +44,31 @@ class HeaderPage(Page):
     content_panels = Page.content_panels + [
         FieldPanel('body'),
     ]
+
+from wagtail.signals import page_published
+
+
+def invalidate_cloudfront_cache(paths):
+    client = boto3.client('cloudfront')
+
+    print('Called CF cache invalidation')
+    print(os.environ['CLOUDFRONT_DISTRIBUTION_ID'])
+    
+    response = client.create_invalidation(
+        DistributionId=os.environ['CLOUDFRONT_DISTRIBUTION_ID'],
+        InvalidationBatch={
+            'Paths': {
+                'Quantity': len(paths),
+                'Items': paths
+            },
+            'CallerReference': str(time.time()).replace(".", "")
+        }
+    )
+    return response
+
+def invalidate_cache_on_publish(sender, **kwargs):
+    paths = ['/'] 
+    invalidate_cloudfront_cache(paths)
+
+# Register listeners to invalidate cache for Home Page when Recipe Page is updated.
+page_published.connect(invalidate_cache_on_publish, sender=RecipePage)
