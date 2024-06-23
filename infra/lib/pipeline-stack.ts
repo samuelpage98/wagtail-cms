@@ -19,7 +19,7 @@ export class PipelineStack extends cdk.Stack {
     const pipeline = new CodePipeline(this, "Pipeline", {
       pipelineName: "InfraPipeline",
       synth: new ShellStep("Synth", {
-        input: CodePipelineSource.gitHub("johnemcbride/johntechhome", "main", {
+        input: CodePipelineSource.gitHub("samuelpage98/wagtail-cms", "main", {
           authentication: cdk.SecretValue.secretsManager("github-token"),
         }),
         commands: [
