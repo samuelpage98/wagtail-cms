@@ -90,9 +90,7 @@ main {
   padding: 15px;
   background-color: #7f947f;
   flex-grow: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
+  height: 150px;
 }
 
 .recipe-card-content h2 {
