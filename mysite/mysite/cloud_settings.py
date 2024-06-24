@@ -14,6 +14,7 @@ STORAGES = {
             'secret_key': os.environ['AWS_SECRET_ACCESS_KEY'],
             'security_token': os.environ['AWS_SESSION_TOKEN'],
             'region_name': os.environ.get('AWS_REGION_NAME', None),
+            'custom_domain': os.environ['CLOUDFRONT_DISTRIBUTION_DOMAINNAME']
         },
     },
     "staticfiles": {

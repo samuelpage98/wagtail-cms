@@ -45,6 +45,8 @@ class HeaderPage(Page):
         FieldPanel('body'),
     ]
 
+
+
 from wagtail.signals import page_published
 
 
@@ -52,7 +54,6 @@ def invalidate_cloudfront_cache(paths):
     client = boto3.client('cloudfront')
 
     print('Called CF cache invalidation')
-    print(os.environ['CLOUDFRONT_DISTRIBUTION_ID'])
     
     response = client.create_invalidation(
         DistributionId=os.environ['CLOUDFRONT_DISTRIBUTION_ID'],
