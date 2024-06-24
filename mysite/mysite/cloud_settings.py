@@ -48,7 +48,7 @@ ROOT_URLCONF = 'mysite.urls'
 
 
 MEDIA_URL = 'https://' + \
-    os.environ['CLOUDFRONT_DISTRIBUTION_DOMAINNAME']+'/media/'
+    os.environ['CLOUDFRONT_DISTRIBUTION_DOMAINNAME']+'/'
 
 
 MEDIA_ROOT = None
