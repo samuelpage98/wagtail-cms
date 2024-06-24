@@ -154,7 +154,6 @@ export class InfraStack extends cdk.Stack {
     );
 
     const media = new origins.S3Origin(this.bucket, {
-      originPath: "/media",
       originAccessIdentity: originAccessIdentity,
     });
 

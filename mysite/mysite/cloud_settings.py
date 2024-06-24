@@ -9,6 +9,7 @@ STORAGES = {
         "BACKEND": "storages.backends.s3.S3Storage",
         "OPTIONS": {
             'bucket_name': os.environ['BUCKET_NAME'],
+            'location': 'media/',
             'access_key': os.environ['AWS_ACCESS_KEY_ID'],
             'secret_key': os.environ['AWS_SECRET_ACCESS_KEY'],
             'security_token': os.environ['AWS_SESSION_TOKEN'],
