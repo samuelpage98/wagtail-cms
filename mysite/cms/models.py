@@ -9,6 +9,7 @@ from .blocks import HeaderBlock
 import boto3
 import os
 import time
+import json
 
 class RecipePage(Page):
     introduction = RichTextField(blank=True)
@@ -37,6 +38,22 @@ class HomePage(Page):
         context['recipes'] = RecipePage.objects.child_of(self).live().order_by('-first_published_at')
         return context
 
+class ShoppingListPage(Page):
+    content_panels = Page.content_panels
+
+    def get_context(self, request):
+        context = super().get_context(request)
+        recipes = RecipePage.objects.live().order_by('title')
+        context['recipes'] = recipes
+        context['recipes_json'] = json.dumps([
+            {
+                'id': recipe.id,
+                'title': recipe.title,
+                'ingredients': recipe.ingredients,
+            }
+            for recipe in recipes
+        ])
+        return context
 
 class HeaderPage(Page):
     body = StreamField(HeaderBlock(), blank=True)

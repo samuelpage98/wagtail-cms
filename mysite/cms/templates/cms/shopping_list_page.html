@@ -1,0 +1,145 @@
+{% load static wagtailcore_tags %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shopping List</title>
+    <link href="{% static 'css/shopping-list/styles.css' %}" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400..700&display=swap" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const recipes = JSON.parse(document.getElementById('recipes-data').textContent);
+            let shoppingList = JSON.parse(localStorage.getItem('shoppingList')) || [];
+
+            const recipeSelect = document.querySelector('#recipe-select');
+            const addRecipeButton = document.querySelector('#add-recipe-button');
+            const shoppingListContainer = document.querySelector('#shopping-list');
+            const combinedIngredientsContainer = document.querySelector('#combined-ingredients');
+
+            function renderShoppingList() {
+                shoppingListContainer.innerHTML = '';
+                shoppingList.forEach((item, index) => {
+                    const listItem = document.createElement('li');
+                    listItem.innerHTML = `
+                        <strong>${item.recipe.title}</strong>
+                        <button data-index="${index}" class="remove-recipe-button">Remove</button>
+                    `;
+                    shoppingListContainer.appendChild(listItem);
+                });
+                renderCombinedIngredients();
+            }
+
+            function renderCombinedIngredients() {
+                const ingredientsMap = new Map();
+
+                shoppingList.forEach(item => {
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = item.ingredients;
+                    const nodes = tempDiv.childNodes;
+
+                    nodes.forEach(node => {
+                        if (node.nodeType === Node.ELEMENT_NODE) {
+                            if (node.tagName === 'UL' || node.tagName === 'OL') {
+                                node.childNodes.forEach(childNode => {
+                                    if (childNode.nodeType === Node.ELEMENT_NODE) {
+                                        const text = childNode.textContent.trim();
+                                        if (text) {
+                                            if (ingredientsMap.has(text)) {
+                                                ingredientsMap.set(text, ingredientsMap.get(text) + 1);
+                                            } else {
+                                                ingredientsMap.set(text, 1);
+                                            }
+                                        }
+                                    }
+                                });
+                            } else {
+                                const text = node.textContent.trim();
+                                if (text) {
+                                    if (ingredientsMap.has(text)) {
+                                        ingredientsMap.set(text, ingredientsMap.get(text) + 1);
+                                    } else {
+                                        ingredientsMap.set(text, 1);
+                                    }
+                                }
+                            }
+                        }
+                    });
+                });
+
+                combinedIngredientsContainer.innerHTML = '';
+                ingredientsMap.forEach((count, ingredient) => {
+                    const listItem = document.createElement('li');
+                    listItem.textContent = count > 1 ? `${ingredient} (${count})` : ingredient;
+                    combinedIngredientsContainer.appendChild(listItem);
+                });
+            }
+
+            function addRecipeToShoppingList() {
+                const selectedRecipeId = parseInt(recipeSelect.value);
+                const recipe = recipes.find(recipe => recipe.id === selectedRecipeId);
+                if (recipe) {
+                    shoppingList.push({ recipe: recipe, ingredients: recipe.ingredients });
+                    localStorage.setItem('shoppingList', JSON.stringify(shoppingList));
+                    renderShoppingList();
+                }
+            }
+
+            function removeRecipeFromShoppingList(index) {
+                shoppingList.splice(index, 1);
+                localStorage.setItem('shoppingList', JSON.stringify(shoppingList));
+                renderShoppingList();
+            }
+
+            addRecipeButton.addEventListener('click', addRecipeToShoppingList);
+
+            shoppingListContainer.addEventListener('click', function(event) {
+                if (event.target.classList.contains('remove-recipe-button')) {
+                    const index = event.target.getAttribute('data-index');
+                    removeRecipeFromShoppingList(index);
+                }
+            });
+
+            renderShoppingList();
+        });
+    </script>
+</head>
+<body>
+    <main class="container">
+        {% include "cms/includes/header.html" %}
+        <h1 class="title">Shopping List</h1>
+        <div class="recipe-selection">
+            <h2>Select Recipes</h2>
+            <select id="recipe-select">
+                {% for recipe in recipes %}
+                    <option value="{{ recipe.id }}">{{ recipe.title }}</option>
+                {% endfor %}
+            </select>
+            <button id="add-recipe-button">Add to Shopping List</button>
+        </div>
+        <div class="shopping-list-container">
+            <div class="combined-ingredients">
+                <h2>Shopping List</h2>
+                <ul id="combined-ingredients">
+                    <!-- Combined ingredients will be rendered here by JavaScript -->
+                </ul>
+            </div>
+            <div class="shopping-list">
+                <h2>Your Meals</h2>
+                <ul id="shopping-list">
+                    <!-- Shopping list items will be rendered here by JavaScript -->
+                </ul>
+            </div>
+        </div>
+        <script id="recipes-data" type="application/json">
+            {{ recipes_json|safe }}
+        </script>
+    </main>
+    <footer>
+        <p>&copy; {{ current_year }} {{ self.site_name }}. All rights reserved.</p>
+    </footer>
+</body>
+</html>
