@@ -1,4 +1,3 @@
-# models.py
 from django.db import models
 from wagtail.models import Page
 from wagtail.fields import StreamField, RichTextField
@@ -63,9 +62,7 @@ class HeaderPage(Page):
     ]
 
 
-
 from wagtail.signals import page_published
-
 
 def invalidate_cloudfront_cache(paths):
     client = boto3.client('cloudfront')
@@ -84,8 +81,18 @@ def invalidate_cloudfront_cache(paths):
     )
     return response
 
+def get_related_pages():
+    related_pages = set()
+    
+    for page in HomePage.objects.live():
+        related_pages.add(page.url)
+    for page in ShoppingListPage.objects.live():
+        related_pages.add(page.url)
+
+    return list(related_pages)
+
 def invalidate_cache_on_publish(sender, **kwargs):
-    paths = ['/'] 
+    paths = get_related_pages()
     invalidate_cloudfront_cache(paths)
 
 # Register listeners to invalidate cache for Home Page when Recipe Page is updated.

@@ -7,7 +7,7 @@
     {% get_site_root as site_root %}
     <nav>
         <p>
-        <a href="{% pageurl site_root %}">Home</a> |
+        <a href="{% pageurl site_root %}" style="padding-right: 10px;">Home</a> |
         {% for menuitem in site_root.get_children.live.in_menu %}
             <a href="{% pageurl menuitem %}" style="padding: 0 10px;">{{ menuitem.title }}</a> |
         {% endfor %}
